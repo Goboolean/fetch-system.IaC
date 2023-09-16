@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fetch-system-app-chart.fullname" . }}-master
+spec:
+  replicas: {{ .Values.master.replicas }}
+  selector:
+    matchLabels:
+      app: master
+  template:
+    metadata:
+      labels:
+        app: master
+    spec:
+      containers:
+        - name: master
+          image: "{{ .Values.master.repository }}:{{ .Values.master.tag }}"
+          ports:
+            - containerPort: 8080

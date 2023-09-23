@@ -64,9 +64,13 @@ func NewConsumer(c *resolver.ConfigMap) (*Consumer, error) {
 }
 
 
-func (c *Consumer) SubscribeTrade(productId string) (chan *model.Trade, error) {
+func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error) {
 
 	topic := fmt.Sprintf("%s.t", productId)
+	if !model.IsSymbolValid(topic) {
+		return nil, ErrInvalidSymbol
+	}
+
 	if err := c.consumer.Subscribe(topic, nil); err != nil {
 		return nil, err
 	}
@@ -104,9 +108,13 @@ func (c *Consumer) SubscribeTrade(productId string) (chan *model.Trade, error) {
 }
 
 
-func (c *Consumer) SubscribeAggs(productId string, productType string) (chan *model.Aggregate, error) {
+func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *model.Aggregate, error) {
 
 	topic := fmt.Sprintf("%s.%s", productId, productType)
+	if !model.IsSymbolValid(topic) {
+		return nil, ErrInvalidSymbol
+	}
+
 	if err := c.consumer.Subscribe(topic, nil); err != nil {
 		return nil, err
 	}

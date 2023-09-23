@@ -19,6 +19,7 @@ func (db *DB) FetchAllStockBatch(ctx context.Context, productId string, productT
 	if err != nil {
 		return nil, err
 	}
+	defer session.EndSession(ctx)
 
 	symbol := fmt.Sprintf("%s.%s", productId, productType)
 	if valid := model.IsSymbolValid(symbol); !valid {
@@ -36,7 +37,7 @@ func (db *DB) FetchAllStockBatch(ctx context.Context, productId string, productT
 
 		for cursor.Next(ctx) {
 			var data Aggregate
-			if err := cursor.Decode(data); err != nil {
+			if err := cursor.Decode(&data); err != nil {
 				return err
 			}
 
@@ -54,6 +55,7 @@ func (db *DB) FetchAllStockBatchMassive(ctx context.Context, productId string, p
 	if err != nil {
 		return err
 	}
+	defer session.EndSession(ctx)
 
 	symbol := fmt.Sprintf("%s.%s", productId, productType)
 	if valid := model.IsSymbolValid(symbol); !valid {
@@ -86,6 +88,7 @@ func (db *DB) InsertProduct(ctx context.Context, productId string, productType s
 	if err != nil {
 		return err
 	}
+	defer session.EndSession(ctx)
 
 	symbol := fmt.Sprintf("%s.%s", productId, productType)
 	if valid := model.IsSymbolValid(symbol); !valid {

@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.infrastructure/pkg/mongo"
 	"github.com/stretchr/testify/assert"
-	_ "github.com/Goboolean/common/pkg/env"
 )
 
 
@@ -56,22 +56,34 @@ func TestConstructor(t *testing.T) {
 
 func TestQueries(t *testing.T) {
 
-	const productId = "stock.test.kor"
-	const productType = "1m"
+	const productId = "test.goboolean.kor"
+	const productType = "1s"
+
+	var data = &mongo.Aggregate{
+		Timestamp: time.Now().UnixNano(),
+	}
+
+	t.Run("InsertProduct", func(t *testing.T) {
+		ctx := context.Background()
+		err := db.InsertProduct(ctx, productId, productType, data)
+		assert.NoError(t, err)
+	})
 
 	t.Run("FetchAllStockBatch", func(t *testing.T) {
 		ctx := context.Background()
 		data, err := db.FetchAllStockBatch(ctx, productId, productType)
 		assert.NoError(t, err)
 		assert.NotEqual(t, 0, len(data))
+		t.Logf("data: %d", len(data))
 	})
 
 	t.Run("FetchAllStockBatchMassive", func(t *testing.T) {
-		var ch = make(chan *mongo.Aggregate, 0)
+		var ch = make(chan *mongo.Aggregate, 100)
 
 		ctx := context.Background()
 		err := db.FetchAllStockBatchMassive(ctx, productId, productType, ch)
 		assert.NoError(t, err)
 		assert.NotEqual(t, 0, len(ch))
+		t.Logf("data: %d", len(ch))
 	})
 }

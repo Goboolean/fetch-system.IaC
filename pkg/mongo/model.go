@@ -8,5 +8,5 @@ type Aggregate struct {
 	Closed    float64 `bson:"closed"`
 	Min       float64 `bson:"min"`
 	Max       float64 `bson:"max"`
-	Volume    float64 `bson:"volume"`
+	Volume    int64   `bson:"volume"`
 }

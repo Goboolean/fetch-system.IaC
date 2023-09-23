@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Goboolean/fetch-system.infrastructure/api/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -19,8 +20,11 @@ func (db *DB) FetchAllStockBatch(ctx context.Context, productId string, productT
 		return nil, err
 	}
 
-	collName := fmt.Sprintf("%s.%s", productId, productType)
-	coll := db.client.Database(db.defaultDB).Collection(collName)
+	symbol := fmt.Sprintf("%s.%s", productId, productType)
+	if valid := model.IsSymbolValid(symbol); !valid {
+		return nil, ErrInvalidSymbol
+	}
+	coll := db.client.Database(db.defaultDB).Collection(symbol)
 
 	results := make([]*Aggregate, 0)
 
@@ -51,8 +55,11 @@ func (db *DB) FetchAllStockBatchMassive(ctx context.Context, productId string, p
 		return err
 	}
 
-	collName := fmt.Sprintf("%s.%s", productId, productType)
-	coll := db.client.Database(db.defaultDB).Collection(collName)
+	symbol := fmt.Sprintf("%s.%s", productId, productType)
+	if valid := model.IsSymbolValid(symbol); !valid {
+		return ErrInvalidSymbol
+	}
+	coll := db.client.Database(db.defaultDB).Collection(symbol)
 
 	return mongo.WithSession(ctx, session, func(ctx mongo.SessionContext) error {
 		cursor, err := coll.Find(ctx, bson.M{})
@@ -80,8 +87,12 @@ func (db *DB) InsertProduct(ctx context.Context, productId string, productType s
 		return err
 	}
 
-	collName := fmt.Sprintf("%s.%s", productId, productType)
-	coll := db.client.Database(db.defaultDB).Collection(collName)
+	symbol := fmt.Sprintf("%s.%s", productId, productType)
+	if valid := model.IsSymbolValid(symbol); !valid {
+		return ErrInvalidSymbol
+	}
+
+	coll := db.client.Database(db.defaultDB).Collection(symbol)
 
 	return mongo.WithSession(ctx, session, func(ctx mongo.SessionContext) error {
 		_, err := coll.InsertOne(ctx, data)

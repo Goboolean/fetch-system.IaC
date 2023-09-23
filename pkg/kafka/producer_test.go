@@ -44,8 +44,22 @@ func TeardownProducer(p *kafka.Producer) {
 }
 
 
-
 func Test_Producer(t *testing.T) {
+
+	p := SetupProducer()
+	defer TeardownProducer(p)
+
+	t.Run("Ping", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+	
+		err := p.Ping(ctx)
+		assert.NoError(t, err)
+	})
+}
+
+
+func Test_Produce(t *testing.T) {
 
 	p := SetupProducer()
 	defer TeardownProducer(p)
@@ -67,14 +81,6 @@ func Test_Producer(t *testing.T) {
 		Volume: 100,
 		Timestamp: time.Now().Unix(),
 	}
-
-	t.Run("Ping", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-		defer cancel()
-	
-		err := p.Ping(ctx)
-		assert.NoError(t, err)
-	})
 
 	t.Run("ProduceTrade", func(t *testing.T) {
 		err := p.ProduceTrade(productId, trade)

@@ -51,6 +51,7 @@ func NewDB(c *resolver.ConfigMap) (*DB, error) {
 		Path:   "/",
 		RawQuery: url.Values{
 			"authSource": []string{database},
+			"directConnection": []string{"true"},
 		}.Encode(),
 	}
 

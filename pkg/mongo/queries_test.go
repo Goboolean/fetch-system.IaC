@@ -9,6 +9,7 @@ import (
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.infrastructure/pkg/mongo"
 	"github.com/stretchr/testify/assert"
+	_ "github.com/Goboolean/common/pkg/env"
 )
 
 
@@ -42,19 +43,21 @@ func TestMain(m *testing.M) {
 
 
 
-
-func TestQueries(t *testing.T) {
-
-	const productId = "stock.test.kor"
-	const productType = "1m"
-
+func TestConstructor(t *testing.T) {
 	t.Run("Ping", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 3)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
 		defer cancel()
 
 		err := db.Ping(ctx)
 		assert.NoError(t, err)
 	})
+}
+
+
+func TestQueries(t *testing.T) {
+
+	const productId = "stock.test.kor"
+	const productType = "1m"
 
 	t.Run("FetchAllStockBatch", func(t *testing.T) {
 		ctx := context.Background()

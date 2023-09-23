@@ -70,7 +70,7 @@ func (p *Producer) produce(topic string, msg proto.Message) error {
 
 
 func (p *Producer) ProduceTrade(productId string, data *model.Trade) error {
-	topic := fmt.Sprintf("%s.%s", productId, "r")
+	topic := fmt.Sprintf("%s.%s", productId, "t")
 	fmt.Println("topic: ", topic)
 	return p.produce(topic, data)
 }

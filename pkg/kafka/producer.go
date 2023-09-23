@@ -2,10 +2,12 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/Goboolean/fetch-system.infrastructure/api/model"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
@@ -53,7 +55,7 @@ func NewProducer(c *resolver.ConfigMap) (*Producer, error) {
 
 
 
-func (p *Producer) Produce(topic string, msg proto.Message) error {
+func (p *Producer) produce(topic string, msg proto.Message) error {
 	payload, err := proto.Marshal(msg)
 
 	if err = p.producer.Produce(&kafka.Message{
@@ -64,6 +66,20 @@ func (p *Producer) Produce(topic string, msg proto.Message) error {
 	}
 
 	return nil
+}
+
+
+func (p *Producer) ProduceTrade(productId string, data *model.Trade) error {
+	topic := fmt.Sprintf("%s.%s", productId, "r")
+	fmt.Println("topic: ", topic)
+	return p.produce(topic, data)
+}
+
+
+func (p *Producer) ProduceAggs(productId string, productType string, data *model.Aggregate) error {
+	topic := fmt.Sprintf("%s.%s", productId, productType)
+	fmt.Println("topic: ", topic)
+	return p.produce(topic, data)
 }
 
 

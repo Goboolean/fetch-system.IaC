@@ -72,3 +72,19 @@ func (db *DB) FetchAllStockBatchMassive(ctx context.Context, productId string, p
 		return cursor.Close(ctx)
 	})
 }
+
+
+func (db *DB) InsertProduct(ctx context.Context, productId string, productType string, data *Aggregate) error {
+	session, err := db.client.StartSession()
+	if err != nil {
+		return err
+	}
+
+	collName := fmt.Sprintf("%s.%s", productId, productType)
+	coll := db.client.Database(db.defaultDB).Collection(collName)
+
+	return mongo.WithSession(ctx, session, func(ctx mongo.SessionContext) error {
+		_, err := coll.InsertOne(ctx, data)
+		return err
+	})
+}

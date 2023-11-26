@@ -1,0 +1,9 @@
+apiVersion: v2
+name: fetch-system-chart
+version: 0.1.0
+description: A Helm chart for my application
+
+dependencies:
+  - name: mongodb
+    version: "14.3.0"
+    repository: "https://charts.bitnami.com/bitnami"

@@ -1,0 +1,12 @@
+mongodb:
+  auth:
+    rootPassword: golution
+    username: goboolean
+    password: golution
+    database: goboolean-stock
+  architecture: replicaset
+  replicaSetName: rs0
+  replicas:
+    secondary: 2
+  arbiter:
+    enabled: false

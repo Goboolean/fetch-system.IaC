@@ -1,4 +1,0 @@
-apiVersion: v2
-name: fetch-system-app-chart
-version: 0.1.0
-description: A Helm chart for my application

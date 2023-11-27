@@ -4,5 +4,53 @@ services:
     build:
       context: ../
       dockerfile: ./build/Dockerfile.test
+
+  mongodb-primary:
     ports:
-      - "9200:9200"
+      - ${MONGODB_PORT}:27017
+    image: 'bitnami/mongodb:latest'
+    container_name: mogngodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=localhost
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_REPLICA_SET_KEY=${MONGODB_PASSWORD}
+      - MONGODB_PORT_NUMBER=27017
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
+    volumes:
+      - '/data/mongodb:/bitnami/mongodb'
+
+  mongodb-secondary:
+    image: 'bitnami/mongodb:latest'
+    container_name: mogngodb-secondary
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=localhost
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=localhost
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_REPLICA_SET_KEY=${MONGODB_PASSWORD}
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - ALLOW_EMPTY_PASSWORD=yes 
+  mongodb-arbiter:
+    image: 'bitnami/mongodb:latest'
+    container_name: mogngodb-arbiter
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=localhost
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST=localhost
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_REPLICA_SET_KEY=${MONGODB_PASSWORD}
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - ALLOW_EMPTY_PASSWORD=yes 

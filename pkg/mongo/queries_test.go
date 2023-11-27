@@ -18,11 +18,11 @@ var db *mongo.DB
 
 func SetupMongo() *mongo.DB {
 	db, err := mongo.NewDB(&resolver.ConfigMap{
-		"HOST":     os.Getenv("MONGO_HOST"),
-		"USER":     os.Getenv("MONGO_USER"),
-		"PORT":     os.Getenv("MONGO_PORT"),
-		"PASSWORD": os.Getenv("MONGO_PASS"),
-		"DATABASE": os.Getenv("MONGO_DATABASE"),
+		"HOST":     os.Getenv("MONGODB_HOST"),
+		"USER":     os.Getenv("MONGODB_USER"),
+		"PORT":     os.Getenv("MONGODB_PORT"),
+		"PASSWORD": os.Getenv("MONGODB_PASS"),
+		"DATABASE": os.Getenv("MONGODB_DATABASE"),
 	})
 	if err != nil {
 		panic(err)

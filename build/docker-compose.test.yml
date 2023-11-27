@@ -4,23 +4,32 @@ services:
     build:
       context: ../
       dockerfile: ./build/Dockerfile.test
+    environment:
+      - MONGODB_HOST=mongodb-primary
+      - MONGODB_PORT=27017
+      - MONGODB_USERNAME=goboolean
+      - MONGODB_PASSWORD=golution
+      - MONGODB_DATABASE=goboolean-stock
+      - KAFKA_BOOTSTRAP_HOST=mulmuri.dev:9092
+    networks:
+      - default
 
   mongodb-primary:
-    ports:
-      - ${MONGODB_PORT}:27017
     image: 'bitnami/mongodb:latest'
     container_name: mogngodb-primary
+    ports:
+      - "27017"
     environment:
-      - MONGODB_ADVERTISED_HOSTNAME=localhost
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
       - MONGODB_REPLICA_SET_MODE=primary
-      - MONGODB_ROOT_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_REPLICA_SET_KEY=${MONGODB_PASSWORD}
+      - MONGODB_ROOT_PASSWORD=golution
+      - MONGODB_REPLICA_SET_KEY=golution
       - MONGODB_PORT_NUMBER=27017
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DATABASE=${MONGODB_DATABASE}
-    volumes:
-      - '/data/mongodb:/bitnami/mongodb'
+      - MONGODB_USERNAME=goboolean
+      - MONGODB_PASSWORD=golution
+      - MONGODB_DATABASE=goboolean-stock
+    networks:
+      - default
 
   mongodb-secondary:
     image: 'bitnami/mongodb:latest'
@@ -28,29 +37,38 @@ services:
     depends_on:
       - mongodb-primary
     environment:
-      - MONGODB_ADVERTISED_HOSTNAME=localhost
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
       - MONGODB_REPLICA_SET_MODE=secondary
-      - MONGODB_INITIAL_PRIMARY_HOST=localhost
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
       - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
-      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_REPLICA_SET_KEY=${MONGODB_PASSWORD}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=golution
+      - MONGODB_REPLICA_SET_KEY=golution
+      - MONGODB_USERNAME=goboolean
+      - MONGODB_PASSWORD=golution
+      - MONGODB_DATABASE=goboolean-stock
       - ALLOW_EMPTY_PASSWORD=yes 
+    networks:
+      - default
+
   mongodb-arbiter:
     image: 'bitnami/mongodb:latest'
     container_name: mogngodb-arbiter
     depends_on:
       - mongodb-primary
     environment:
-      - MONGODB_ADVERTISED_HOSTNAME=localhost
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
       - MONGODB_REPLICA_SET_MODE=arbiter
-      - MONGODB_INITIAL_PRIMARY_HOST=localhost
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
       - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
-      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_REPLICA_SET_KEY=${MONGODB_PASSWORD}
-      - MONGODB_USERNAME=${MONGODB_USERNAME}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
-      - MONGODB_DATABASE=${MONGODB_DATABASE}
-      - ALLOW_EMPTY_PASSWORD=yes 
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=golution
+      - MONGODB_REPLICA_SET_KEY=golution
+      - MONGODB_USERNAME=goboolean
+      - MONGODB_PASSWORD=golution
+      - MONGODB_DATABASE=goboolean-stock
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - default
+
+networks:
+  default:
+    driver: bridge

@@ -8,7 +8,7 @@ services:
       - MONGODB_HOST=mongodb-primary
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=goboolean
-      - MONGODB_PASSWORD=golution
+      - MONGODB_PASSWORD=password
       - MONGODB_DATABASE=goboolean-stock
       - KAFKA_BOOTSTRAP_HOST=mulmuri.dev:9092
     networks:
@@ -22,14 +22,12 @@ services:
     environment:
       - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
       - MONGODB_REPLICA_SET_MODE=primary
-      - MONGODB_ROOT_PASSWORD=golution
-      - MONGODB_REPLICA_SET_KEY=golution
+      - MONGODB_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=password
       - MONGODB_PORT_NUMBER=27017
       - MONGODB_USERNAME=goboolean
-      - MONGODB_PASSWORD=golution
+      - MONGODB_PASSWORD=password
       - MONGODB_DATABASE=goboolean-stock
-    networks:
-      - default
 
   mongodb-secondary:
     image: 'bitnami/mongodb:latest'
@@ -41,14 +39,12 @@ services:
       - MONGODB_REPLICA_SET_MODE=secondary
       - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
       - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
-      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=golution
-      - MONGODB_REPLICA_SET_KEY=golution
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=password
       - MONGODB_USERNAME=goboolean
-      - MONGODB_PASSWORD=golution
+      - MONGODB_PASSWORD=password
       - MONGODB_DATABASE=goboolean-stock
       - ALLOW_EMPTY_PASSWORD=yes 
-    networks:
-      - default
 
   mongodb-arbiter:
     image: 'bitnami/mongodb:latest'
@@ -60,15 +56,9 @@ services:
       - MONGODB_REPLICA_SET_MODE=arbiter
       - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
       - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
-      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=golution
-      - MONGODB_REPLICA_SET_KEY=golution
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=password
       - MONGODB_USERNAME=goboolean
-      - MONGODB_PASSWORD=golution
+      - MONGODB_PASSWORD=password
       - MONGODB_DATABASE=goboolean-stock
       - ALLOW_EMPTY_PASSWORD=yes
-    networks:
-      - default
-
-networks:
-  default:
-    driver: bridge

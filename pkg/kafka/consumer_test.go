@@ -7,17 +7,16 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.infrastructure/api/model"
-	"github.com/Goboolean/fetch-system.infrastructure/pkg/kafka"
+	"github.com/Goboolean/fetch-system.IaC/api/model"
+	"github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/stretchr/testify/assert"
 )
-
 
 func SetupConsumer() *kafka.Consumer {
 
 	c, err := kafka.NewConsumer(&resolver.ConfigMap{
 		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
-		"GROUP_ID": "TEST_GROUP",
+		"GROUP_ID":       "TEST_GROUP",
 	})
 	if err != nil {
 		panic(err)
@@ -31,21 +30,19 @@ func TeardownConsumer(c *kafka.Consumer) {
 	c.Close()
 }
 
-
 func TestConsumer(t *testing.T) {
-	
+
 	c := SetupConsumer()
 	defer TeardownConsumer(c)
 
 	t.Run("Ping", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 3)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
 		err := c.Ping(ctx)
 		assert.NoError(t, err)
 	})
 }
-
 
 func TestConsumeAggs(t *testing.T) {
 
@@ -71,7 +68,7 @@ func TestConsumeAggs(t *testing.T) {
 	})
 
 	t.Run("Produce", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 3)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
 		for i := 0; i < count; i++ {
@@ -90,7 +87,6 @@ func TestConsumeAggs(t *testing.T) {
 		assert.Equal(t, count, len(ch))
 	})
 }
-
 
 func TestConsumeTrade(t *testing.T) {
 
@@ -115,7 +111,7 @@ func TestConsumeTrade(t *testing.T) {
 	})
 
 	t.Run("Produce", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 3)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
 		for i := 0; i < count; i++ {

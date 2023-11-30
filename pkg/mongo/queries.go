@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Goboolean/fetch-system.infrastructure/api/model"
+	"github.com/Goboolean/fetch-system.IaC/api/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )

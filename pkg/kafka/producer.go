@@ -7,13 +7,11 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.infrastructure/api/model"
+	"github.com/Goboolean/fetch-system.IaC/api/model"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 )
-
-
 
 type Producer struct {
 	producer *kafka.Producer
@@ -24,9 +22,10 @@ type Producer struct {
 }
 
 // example:
-// p, err := NewProducer(&resolver.ConfigMap{
-//   "BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
-// })
+//
+//	p, err := NewProducer(&resolver.ConfigMap{
+//	  "BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+//	})
 func NewProducer(c *resolver.ConfigMap) (*Producer, error) {
 
 	bootstrap_host, err := c.GetStringKey("BOOTSTRAP_HOST")
@@ -44,16 +43,14 @@ func NewProducer(c *resolver.ConfigMap) (*Producer, error) {
 
 	instance := &Producer{
 		producer: p,
-		wg: sync.WaitGroup{},
-		ctx: ctx,
-		cancel: cancel,
+		wg:       sync.WaitGroup{},
+		ctx:      ctx,
+		cancel:   cancel,
 	}
 
 	instance.traceEvent(ctx, &instance.wg)
 	return instance, nil
 }
-
-
 
 func (p *Producer) produce(topic string, msg proto.Message) error {
 	payload, err := proto.Marshal(msg)
@@ -68,20 +65,17 @@ func (p *Producer) produce(topic string, msg proto.Message) error {
 	return nil
 }
 
-
 func (p *Producer) ProduceTrade(productId string, data *model.Trade) error {
 	topic := fmt.Sprintf("%s.%s", productId, "t")
 	fmt.Println("topic: ", topic)
 	return p.produce(topic, data)
 }
 
-
 func (p *Producer) ProduceAggs(productId string, productType string, data *model.Aggregate) error {
 	topic := fmt.Sprintf("%s.%s", productId, productType)
 	fmt.Println("topic: ", topic)
 	return p.produce(topic, data)
 }
-
 
 func (p *Producer) Flush(ctx context.Context) (int, error) {
 
@@ -98,7 +92,6 @@ func (p *Producer) Flush(ctx context.Context) (int, error) {
 	return 0, nil
 }
 
-
 func (p *Producer) traceEvent(ctx context.Context, wg *sync.WaitGroup) {
 
 	go func() {
@@ -112,14 +105,14 @@ func (p *Producer) traceEvent(ctx context.Context, wg *sync.WaitGroup) {
 					log.WithFields(log.Fields{
 						"topic": *ev.TopicPartition.Topic,
 						"data":  ev.Value,
-						"error":  ev.TopicPartition.Error,
+						"error": ev.TopicPartition.Error,
 					}).Error("Producer failed to deliver event to kafka")
 				} else {
 					log.WithFields(log.Fields{
-						"topic": *ev.TopicPartition.Topic,
-						"data":  ev.Value,
-						"partition":  ev.TopicPartition.Partition,
-						"offset": ev.TopicPartition.Offset,
+						"topic":     *ev.TopicPartition.Topic,
+						"data":      ev.Value,
+						"partition": ev.TopicPartition.Partition,
+						"offset":    ev.TopicPartition.Offset,
 					}).Trace("Producer delivered event to kafka")
 				}
 			}
@@ -127,13 +120,11 @@ func (p *Producer) traceEvent(ctx context.Context, wg *sync.WaitGroup) {
 	}()
 }
 
-
 func (p *Producer) Close() {
 	p.producer.Close()
 	p.cancel()
 	p.wg.Wait()
 }
-
 
 func (p *Producer) Ping(ctx context.Context) error {
 	// It requires ctx to be deadline set, otherwise it will return error

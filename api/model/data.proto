@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package model;
 
-option go_package = "github.com/Goboolean/fetch-system.infrastructure/api/model";
+option go_package = "github.com/Goboolean/fetch-system.IaC/api/model";
 
 
 message Trade {

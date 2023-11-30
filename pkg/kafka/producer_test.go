@@ -7,14 +7,10 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.infrastructure/api/model"
-	"github.com/Goboolean/fetch-system.infrastructure/pkg/kafka"
+	"github.com/Goboolean/fetch-system.IaC/api/model"
+	"github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/stretchr/testify/assert"
 )
-
-
-
-
 
 func SetupProducer() *kafka.Producer {
 	p, err := kafka.NewProducer(&resolver.ConfigMap{
@@ -43,7 +39,6 @@ func TeardownProducer(p *kafka.Producer) {
 	p.Close()
 }
 
-
 func Test_Producer(t *testing.T) {
 
 	p := SetupProducer()
@@ -52,12 +47,11 @@ func Test_Producer(t *testing.T) {
 	t.Run("Ping", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-	
+
 		err := p.Ping(ctx)
 		assert.NoError(t, err)
 	})
 }
-
 
 func Test_Produce(t *testing.T) {
 
@@ -69,16 +63,16 @@ func Test_Produce(t *testing.T) {
 
 	var trade = &model.Trade{
 		Price:     171.55,
-		Size: 	   100,
+		Size:      100,
 		Timestamp: time.Now().Unix(),
 	}
 
 	var aggs = &model.Aggregate{
-		Open:   170.55,
-		Closed: 173.55,
-		Min:    170.55,
-		Max:    171.55,
-		Volume: 100,
+		Open:      170.55,
+		Closed:    173.55,
+		Min:       170.55,
+		Max:       171.55,
+		Volume:    100,
 		Timestamp: time.Now().Unix(),
 	}
 

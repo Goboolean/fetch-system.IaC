@@ -8,11 +8,9 @@ import (
 
 	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.infrastructure/pkg/mongo"
+	"github.com/Goboolean/fetch-system.IaC/pkg/mongo"
 	"github.com/stretchr/testify/assert"
 )
-
-
 
 var db *mongo.DB
 
@@ -41,18 +39,15 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-
-
 func TestConstructor(t *testing.T) {
 	t.Run("Ping", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
 
 		err := db.Ping(ctx)
 		assert.NoError(t, err)
 	})
 }
-
 
 func TestQueries(t *testing.T) {
 

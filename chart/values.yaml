@@ -10,3 +10,17 @@ mongodb:
     secondary: 2
   arbiter:
     enabled: false
+
+kafka:
+  auth:
+    enabled: false
+  sasl:
+    interbroker:
+      password: password
+    controller:
+      password: password
+  broker:
+    replicaCount: 3
+  kraft:
+    enabled: true
+    clusterId: fMCL8kv1SWm87L_Md-I2hg

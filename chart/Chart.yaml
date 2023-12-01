@@ -7,3 +7,6 @@ dependencies:
   - name: mongodb
     version: "14.3.0"
     repository: "https://charts.bitnami.com/bitnami"
+  - name: kafka
+    version: "26.4.0"
+    repository: "https://charts.bitnami.com/bitnami"

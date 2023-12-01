@@ -5,5 +5,5 @@ proto-generate:
     ./api/model/data.proto
 
 test-app:
-	@docker compose -f ./build/docker-compose.test.yml up --attach server --build --abort-on-container-exit
+	@docker compose -p fetch-system-iac -f ./build/docker-compose.test.yml up --attach server --build --abort-on-container-exit
 	@docker compose -f ./build/docker-compose.test.yml down

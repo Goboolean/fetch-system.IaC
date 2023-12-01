@@ -4,6 +4,6 @@ proto-generate:
 		--go_opt=paths=source_relative \
     ./api/model/data.proto
 
-make test-app:
+test-app:
 	@docker compose -f ./build/docker-compose.test.yml up --attach server --build --abort-on-container-exit
 	@docker compose -f ./build/docker-compose.test.yml down

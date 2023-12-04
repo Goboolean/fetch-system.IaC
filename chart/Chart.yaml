@@ -16,3 +16,6 @@ dependencies:
   - name: prometheus
     version: "0.4.3"
     repository: "https://charts.bitnami.com/bitnami"
+  - name: grafana
+    version: "9.6.1"
+    repository: "https://charts.bitnami.com/bitnami"

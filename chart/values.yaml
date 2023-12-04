@@ -80,3 +80,8 @@ prometheus:
         scrape_interval: 5s
         static_configs:
           - targets: ["opentelemetry-collector:4317"]
+
+grafana:
+  admin:
+    user: admin
+    password: password

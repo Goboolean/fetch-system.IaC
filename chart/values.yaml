@@ -69,5 +69,14 @@ opentelemetry-collector:
     service:
       pipelines:
         metrics:
-          receivers: [otlp]
-          exporters: [prometheus]
+          receivers:
+            - otlp
+            - prometheus
+
+prometheus:
+  server:
+    extraScrapeConfigs:
+      - job_name: 'opentelemetry'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ["opentelemetry-collector:4317"]

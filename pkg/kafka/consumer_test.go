@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.IaC/api/model"
+	"github.com/Goboolean/fetch-system.IaC/pkg/model"
 	"github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/stretchr/testify/assert"
 )
@@ -45,8 +45,6 @@ func TestConsumer(t *testing.T) {
 }
 
 func TestConsumeAggs(t *testing.T) {
-
-	t.Skip("Skip this test since it's not working properly now")
 
 	c := SetupConsumer()
 	defer TeardownConsumer(c)
@@ -89,8 +87,6 @@ func TestConsumeAggs(t *testing.T) {
 }
 
 func TestConsumeTrade(t *testing.T) {
-
-	t.Skip("Skip this test since it's not working properly now")
 
 	c := SetupConsumer()
 	defer TeardownConsumer(c)

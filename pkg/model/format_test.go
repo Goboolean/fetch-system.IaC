@@ -1,8 +1,9 @@
-package model
+package model_test
 
 import (
 	"testing"
 
+	"github.com/Goboolean/fetch-system.IaC/pkg/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +39,7 @@ func TestFormat(t *testing.T) {
 
 	for _, tt := range test {
 		t.Run(tt.name, func(t *testing.T) {
-			got := IsSymbolValid(tt.str)
+			got := model.IsSymbolValid(tt.str)
 			assert.Equal(t, tt.match, got)
 		})
 	}

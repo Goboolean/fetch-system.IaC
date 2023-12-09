@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.IaC/api/model"
+	"github.com/Goboolean/fetch-system.IaC/pkg/model"
 	"github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/stretchr/testify/assert"
 )

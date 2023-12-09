@@ -7,8 +7,10 @@ import (
 
 	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/common/pkg/resolver"
+	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
 	log "github.com/sirupsen/logrus"
+
 )
 
 var mutex = &sync.Mutex{}

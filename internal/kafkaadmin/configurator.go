@@ -120,6 +120,10 @@ func (c *Configurator) DeleteAllTopics(ctx context.Context) error {
 		return err
 	}
 
+	if len(topicList) == 0 {
+		return nil
+	}
+
 	result, err := c.client.DeleteTopics(ctx, topicList)
 	if err != nil {
 		return err

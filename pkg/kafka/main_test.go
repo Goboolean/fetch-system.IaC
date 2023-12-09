@@ -6,19 +6,30 @@ import (
 	"testing"
 
 	_ "github.com/Goboolean/common/pkg/env"
+	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
 	log "github.com/sirupsen/logrus"
 )
 
 var mutex = &sync.Mutex{}
 
-// List for perfect test coverage
-// [*] 1. Ping test
-// [*] 2. Produce and consume
-// [ ] 3. Produce and consume not existing topic
-// [*] 4. Consume with different group
-// [*] 5. Consume with same group
-// [ ] 6. Consume with registry
-// [ ] 7. Consume invalid typed message
+
+
+func SetupConfigurator() *kafkaadmin.Configurator {
+	c, err := kafkaadmin.New(&resolver.ConfigMap{
+		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+	})
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+func TeardownConfigurator(c *kafkaadmin.Configurator) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	c.Close()
+}
 
 
 

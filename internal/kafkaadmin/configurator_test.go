@@ -103,7 +103,7 @@ func Test_GetTopicList(t *testing.T) {
 
 	topicList := []string{"test.goboolean.io.1s", "test.goboolean.io.1t"}
 
-	t.Run("GenerateTopics", func(t *testing.T) {
+	t.Run("CreateTopics", func(t *testing.T) {
 		
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()

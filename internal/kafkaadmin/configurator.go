@@ -60,7 +60,7 @@ func (c *Configurator) Ping(ctx context.Context) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return ErrDeadlineSettingRequired
+		deadline = time.Now().Add(1 << 32)
 	}
 
 	_, err := c.client.GetMetadata(nil, true, int(time.Until(deadline).Milliseconds()))
@@ -137,7 +137,7 @@ func (c *Configurator) TopicExists(ctx context.Context, topic string) (bool, err
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return false, ErrDeadlineSettingRequired
+		deadline = time.Now().Add(1 << 32)
 	}
 
 	metadata, err := c.client.GetMetadata(nil, true, int(time.Until(deadline).Milliseconds()))
@@ -154,7 +154,7 @@ func (c *Configurator) GetTopicList(ctx context.Context) ([]string, error) {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return nil, ErrDeadlineSettingRequired
+		deadline = time.Now().Add(1 << 32)
 	}
 
 	metadata, err := c.client.GetMetadata(nil, true, int(time.Until(deadline).Milliseconds()))

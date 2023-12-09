@@ -56,9 +56,17 @@ func Test_Producer(t *testing.T) {
 func Test_Produce(t *testing.T) {
 
 	p := SetupProducer()
-	defer TeardownProducer(p)
+	a := SetupConfigurator()
 
-	const productId = "test.goboolean.kor"
+	t.Cleanup(func() {
+		err := a.DeleteAllTopics(context.Background())
+		assert.NoError(t, err)
+
+		TeardownProducer(p)
+		TeardownConfigurator(a)
+	})
+
+	const productId = "test.goboolean.io"
 	const productType = "1s"
 
 	var trade = &model.Trade{

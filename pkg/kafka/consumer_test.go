@@ -33,7 +33,15 @@ func TeardownConsumer(c *kafka.Consumer) {
 func TestConsumer(t *testing.T) {
 
 	c := SetupConsumer()
-	defer TeardownConsumer(c)
+	a := SetupConfigurator()
+
+	t.Cleanup(func() {
+		err := a.DeleteAllTopics(context.Background())
+		assert.NoError(t, err)
+
+		TeardownConsumer(c)
+		TeardownConfigurator(a)
+	})
 
 	t.Run("Ping", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -47,12 +55,20 @@ func TestConsumer(t *testing.T) {
 func TestConsumeAggs(t *testing.T) {
 
 	c := SetupConsumer()
-	defer TeardownConsumer(c)
 	p := SetupProducer()
-	defer TeardownProducer(p)
+	a := SetupConfigurator()
 
-	const productId = "test.goboolean.kor"
+	const productId = "test.goboolean.io"
 	const productType = "1s"
+
+	t.Cleanup(func() {
+		err := a.DeleteAllTopics(context.Background())
+		assert.NoError(t, err)
+
+		TeardownConsumer(c)
+		TeardownProducer(p)
+		TeardownConfigurator(a)
+	})
 
 	const count = 3
 
@@ -89,11 +105,20 @@ func TestConsumeAggs(t *testing.T) {
 func TestConsumeTrade(t *testing.T) {
 
 	c := SetupConsumer()
-	defer TeardownConsumer(c)
 	p := SetupProducer()
-	defer TeardownProducer(p)
+	a := SetupConfigurator()
 
-	const productId = "test.goboolean.kor"
+	const productId = "test.goboolean.io"
+	const productType = "1m"
+
+	t.Cleanup(func() {
+		err := a.DeleteAllTopics(context.Background())
+		assert.NoError(t, err)
+
+		TeardownConsumer(c)
+		TeardownProducer(p)
+		TeardownConfigurator(a)
+	})
 
 	const count = 3
 

@@ -5,12 +5,33 @@ import (
 	"sync"
 	"testing"
 
+	_ "github.com/Goboolean/common/pkg/env"
+	"github.com/Goboolean/common/pkg/resolver"
+	_ "github.com/Goboolean/common/pkg/env"
+	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
 	log "github.com/sirupsen/logrus"
 
-	_ "github.com/Goboolean/common/pkg/env"
 )
 
 var mutex = &sync.Mutex{}
+
+
+
+func SetupConfigurator() *kafkaadmin.Configurator {
+	c, err := kafkaadmin.New(&resolver.ConfigMap{
+		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+	})
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+func TeardownConfigurator(c *kafkaadmin.Configurator) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	c.Close()
+}
 
 
 

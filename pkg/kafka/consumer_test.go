@@ -56,18 +56,16 @@ func TestConsumeAggs(t *testing.T) {
 
 	c := SetupConsumer()
 	p := SetupProducer()
-	a := SetupConfigurator()
 
-	const productId = "test.goboolean.io"
+	const productId = "test.consumeaggs.io"
 	const productType = "1s"
 
 	t.Cleanup(func() {
-		err := a.DeleteAllTopics(context.Background())
+		err := conf.DeleteAllTopics(context.Background())
 		assert.NoError(t, err)
 
 		TeardownConsumer(c)
 		TeardownProducer(p)
-		TeardownConfigurator(a)
 	})
 
 	const count = 3
@@ -106,18 +104,16 @@ func TestConsumeTrade(t *testing.T) {
 
 	c := SetupConsumer()
 	p := SetupProducer()
-	a := SetupConfigurator()
 
-	const productId = "test.goboolean.io"
+	const productId = "test.consumetrade.io"
 	const productType = "1m"
 
 	t.Cleanup(func() {
-		err := a.DeleteAllTopics(context.Background())
+		err := conf.DeleteAllTopics(context.Background())
 		assert.NoError(t, err)
 
 		TeardownConsumer(c)
 		TeardownProducer(p)
-		TeardownConfigurator(a)
 	})
 
 	const count = 3

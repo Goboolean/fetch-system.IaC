@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/Goboolean/fetch-system.IaC/internal/util"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
@@ -101,7 +102,6 @@ func (c *Configurator) CreateTopic(ctx context.Context, topic string) error {
 func (c *Configurator) DeleteTopic(ctx context.Context, topic string) error {
 
 	result, err := c.client.DeleteTopics(ctx, []string{topic})
-
 	if err != nil {
 		return err
 	}
@@ -149,8 +149,8 @@ func (c *Configurator) TopicExists(ctx context.Context, topic string) (bool, err
 		return false, err
 	}
 
-	_, exists := metadata.Topics[topic]
-	return exists, nil
+	detail, exists := metadata.Topics[topic]
+	return exists && detail.Topic != "", nil
 }
 
 
@@ -169,10 +169,16 @@ func (c *Configurator) GetTopicList(ctx context.Context) ([]string, error) {
 	topicList := make([]string, 0)
 
 	for topic := range metadata.Topics {
-		if len(topic) > 0 {
-			topicList = append(topicList, topic)
+		if topic == "" {
+			continue
 		}
+		if util.Contains(defaultTopicList, topic) {
+			continue
+		}
+		topicList = append(topicList, topic)
 	}
 
 	return topicList, nil
 }
+
+var defaultTopicList = []string{"__consumer_offsets", "kafka-connect-offsets", "kafka-connect-status", "kafka-connect-configs"}

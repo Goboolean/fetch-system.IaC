@@ -2,6 +2,7 @@ package kafkaadmin_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -45,7 +46,7 @@ func Test_Configurator(t *testing.T) {
 
 func Test_CreateDeleteTopic(t *testing.T) {
 
-	const topic = "test.goboolean.io.1s"
+	const topic = "test.createdeletetopic.io.1s"
 
 	conf := SetupConfigurator()
 	defer TeardownConfigurator(conf)
@@ -101,7 +102,7 @@ func Test_GetTopicList(t *testing.T) {
 	conf := SetupConfigurator()
 	defer TeardownConfigurator(conf)
 
-	topicList := []string{"test.goboolean.io.1s", "test.goboolean.io.1t"}
+	topicList := []string{"test.gettopiclist.io.1s", "test.gettopiclist.io.1t"}
 
 	t.Run("CreateTopics", func(t *testing.T) {
 		
@@ -120,6 +121,7 @@ func Test_GetTopicList(t *testing.T) {
 		defer cancel()
 
 		list, err := conf.GetTopicList(ctx)
+		fmt.Println(list)
 		assert.NoError(t, err)
 
 		assert.Len(t, list, len(topicList))

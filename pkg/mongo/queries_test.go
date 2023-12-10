@@ -51,7 +51,7 @@ func TestConstructor(t *testing.T) {
 
 func TestQueries(t *testing.T) {
 
-	const productId = "test.goboolean.kor"
+	const productId = "test.goboolean.io"
 	const productType = "1s"
 
 	var data = &mongo.Aggregate{

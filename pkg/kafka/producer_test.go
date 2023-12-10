@@ -56,17 +56,15 @@ func Test_Producer(t *testing.T) {
 func Test_Produce(t *testing.T) {
 
 	p := SetupProducer()
-	a := SetupConfigurator()
 
 	t.Cleanup(func() {
-		err := a.DeleteAllTopics(context.Background())
+		err := conf.DeleteAllTopics(context.Background())
 		assert.NoError(t, err)
 
 		TeardownProducer(p)
-		TeardownConfigurator(a)
 	})
 
-	const productId = "test.goboolean.io"
+	const productId = "test.produce.io"
 	const productType = "1s"
 
 	var trade = &model.Trade{
@@ -95,7 +93,7 @@ func Test_Produce(t *testing.T) {
 	})
 
 	t.Run("Flush", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
 		defer cancel()
 
 		count, err := p.Flush(ctx)

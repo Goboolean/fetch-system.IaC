@@ -15,6 +15,8 @@ import (
 
 var mutex = &sync.Mutex{}
 
+var conf *kafkaadmin.Configurator
+
 
 
 func SetupConfigurator() *kafkaadmin.Configurator {
@@ -36,6 +38,7 @@ func TeardownConfigurator(c *kafkaadmin.Configurator) {
 
 
 func TestMain(m *testing.M) {
+	conf = SetupConfigurator()
 	log.SetFormatter(&log.TextFormatter{
 		DisableTimestamp: true,
 	})
@@ -43,4 +46,5 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 	os.Exit(code)
+	TeardownConfigurator(conf)
 }

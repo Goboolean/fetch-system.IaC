@@ -149,8 +149,8 @@ func (c *Configurator) TopicExists(ctx context.Context, topic string) (bool, err
 		return false, err
 	}
 
-	_, exists := metadata.Topics[topic]
-	return exists, nil
+	detail, exists := metadata.Topics[topic]
+	return exists && detail.Topic != "", nil
 }
 
 

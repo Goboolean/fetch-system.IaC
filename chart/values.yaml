@@ -2,7 +2,7 @@ mongodb:
   auth:
     rootPassword: golution
     username: goboolean
-    password: golution
+    password: password
     database: goboolean-stock
   architecture: replicaset
   replicaSetName: rs0

@@ -1,7 +1,7 @@
 apiVersion: v2
 name: fetch-system-chart
 version: 0.1.0
-description: A Helm chart for my application
+description: A Helm chart for fetch-system
 
 dependencies:
   - name: mongodb

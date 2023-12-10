@@ -16,10 +16,7 @@ var db *mongo.DB
 
 func SetupMongo() *mongo.DB {
 	db, err := mongo.NewDB(&resolver.ConfigMap{
-		"HOST":     os.Getenv("MONGODB_HOST"),
-		"PORT":     os.Getenv("MONGODB_PORT"),
-		"USER":     os.Getenv("MONGODB_USERNAME"),
-		"PASSWORD": os.Getenv("MONGODB_PASSWORD"),
+		"CONNECTION_URL": os.Getenv("MONGODB_CONNECTION_URL"),
 		"DATABASE": os.Getenv("MONGODB_DATABASE"),
 	})
 	if err != nil {

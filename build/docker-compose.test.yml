@@ -4,10 +4,7 @@ services:
       context: ../
       dockerfile: ./build/Dockerfile.test
     environment:
-      - MONGODB_HOST=mongodb-primary
-      - MONGODB_PORT=27017
-      - MONGODB_USERNAME=goboolean
-      - MONGODB_PASSWORD=password
+      - MONGODB_CONNECTION_URL=mongodb://goboolean:password@mongodb-primary:27017/goboolean-stock
       - MONGODB_DATABASE=goboolean-stock
       - KAFKA_BOOTSTRAP_HOST=kafka:9092
     depends_on:

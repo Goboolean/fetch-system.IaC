@@ -2,6 +2,7 @@ package connect
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -60,6 +61,8 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 	}, nil
 }
 
+func (c *Client) Close() {}
+
 func (c *Client) Ping(ctx context.Context) error {
 
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseurl, nil)
@@ -67,21 +70,72 @@ func (c *Client) Ping(ctx context.Context) error {
 		return err
 	}
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
     if err != nil {
         return err
     }
     defer resp.Body.Close()
 
-	_, err = io.ReadAll(resp.Body)
+	if _, err := io.ReadAll(resp.Body); err != nil {
+		return err
+	}
 
-    if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("status code is %d", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
     }
+
 	return nil
 }
 
-func (c *Client) Close() {}
 
+
+func (c *Client) CheckCompatibility(ctx context.Context) error {
+
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connector-plugins", c.baseurl), nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
+	}
+
+	var plugins []ConnectorPlugin
+    if err := json.Unmarshal(body, &plugins); err != nil {
+		return err
+	}
+
+	var (
+		sinkPluginExists   bool = false
+		sourcePluginExists bool = false
+	)
+
+	for _, plugin := range plugins {
+		if plugin.Class == "com.mongodb.kafka.connect.MongoSourceConnector" && plugin.Type == "source" {
+			sourcePluginExists = true
+		}
+		if plugin.Class == "com.mongodb.kafka.connect.MongoSinkConnector" && plugin.Type == "sink" {
+			sinkPluginExists = true
+		}
+	}
+
+	if !sinkPluginExists {
+		return fmt.Errorf("sink plugin not found")
+	}
+	if !sourcePluginExists {
+		return fmt.Errorf("source plugin not found")
+	}
+	return nil
+}
 

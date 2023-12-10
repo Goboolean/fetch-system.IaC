@@ -9,7 +9,7 @@ import (
 
 
 
-func TestConnect(t *testing.T) {
+func TestConstuctor(t *testing.T) {
 	
 	c := SetupConnect()
 
@@ -17,5 +17,11 @@ func TestConnect(t *testing.T) {
 		err := c.Ping(context.Background())
 		assert.NoError(t, err)
 	})
+
+	t.Run("CheckCompatibility", func(t *testing.T) {
+		err := c.CheckCompatibility(context.Background())
+		assert.NoError(t, err)
+	})
 }
+
 

@@ -2,6 +2,7 @@ package kafkaadmin_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -120,6 +121,7 @@ func Test_GetTopicList(t *testing.T) {
 		defer cancel()
 
 		list, err := conf.GetTopicList(ctx)
+		fmt.Println(list)
 		assert.NoError(t, err)
 
 		assert.Len(t, list, len(topicList))

@@ -1,9 +1,9 @@
-name: Run Test
+name: Test & Build Image
 
 on:
   push:
     branches:
-      - feature/**
+      - main
 
 jobs:
   test:
@@ -19,3 +19,14 @@ jobs:
       - name: Build an image
         run: |
           make test-app
+
+  build:
+    needs: [test]
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build an image
+        run: |
+          make build-app

@@ -7,6 +7,7 @@ services:
       - MONGODB_CONNECTION_URL=mongodb://goboolean:password@mongodb-primary:27017/goboolean-stock
       - MONGODB_DATABASE=goboolean-stock
       - KAFKA_BOOTSTRAP_HOST=kafka:9092
+      - KAFKA_CONNECT_HOST=kafka-connect:8083
     depends_on:
       - kafka
       - mongodb-primary
@@ -80,3 +81,26 @@ services:
       - MONGODB_PASSWORD=password
       - MONGODB_DATABASE=goboolean-stock
       - ALLOW_EMPTY_PASSWORD=yes
+
+  kafka-connect:
+    build:
+      context: ../
+      dockerfile: ./deploy/Dockerfile.kafka-connect
+    ports:
+      - "8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: kafka-connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: kafka-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: kafka-connect-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"

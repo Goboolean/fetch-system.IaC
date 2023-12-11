@@ -59,3 +59,21 @@ type CreateConnectorRequest struct {
 	Name   string          `json:"name"`
 	Config ConnectorConfig `json:"config"`
 }
+
+
+
+type Trade struct {
+	Price     float64 `json:"price"`
+	Size      int64   `json:"size"`
+	Timestamp int64   `json:"timestamp"`
+}
+
+
+type Aggregate struct {
+	Open      float64 `json:"open"`
+	Closed    float64 `json:"closed"`
+	Min       float64 `json:"min"`
+	Max       float64 `json:"max"`
+	Volume    int64   `json:"volume"`
+	Timestamp int64   `json:"timestamp"`
+}

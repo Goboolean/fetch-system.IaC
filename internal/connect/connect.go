@@ -10,6 +10,7 @@ import (
 	"net/url"
 
 	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/pkg/errors"
 )
 
 
@@ -273,7 +274,7 @@ func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 
 	for _, task := range taskList {
 		if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
-			return err
+			return errors.Wrap(err, "failed to call CheckTaskStatus")
 		}
 	}
 	return nil

@@ -3,17 +3,19 @@ package connect_test
 import (
 	"os"
 	"sync"
+	"testing"
 
 	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/Goboolean/fetch-system.IaC/internal/connect"
+	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
 	"github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/Goboolean/fetch-system.IaC/pkg/mongo"
-	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 
 	_ "github.com/Goboolean/common/pkg/env"
 )
 
-var mutex = &sync.Mutex{}
-
+var mutex = sync.Mutex{}
+var conf *kafkaadmin.Configurator
 
 
 func SetupConnect() *connect.Client {
@@ -34,10 +36,9 @@ func TeardownConnect(c *connect.Client) {
 
 
 
-func SetupProducer() *kafka.Producer {
-	p, err := kafka.NewProducer(&resolver.ConfigMap{
-		"KAFKA_BROKER": os.Getenv("KAFKA_BROKER"),
-		"KAFKA_TOPIC": os.Getenv("KAFKA_TOPIC"),
+func SetupProducer() *kafkaadmin.Producer {
+	p, err := kafkaadmin.NewProducer(&resolver.ConfigMap{
+		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
 	})
 	if err != nil {
 		panic(err)
@@ -45,23 +46,13 @@ func SetupProducer() *kafka.Producer {
 	return p
 }
 
-func TeardownProducer(p *kafka.Producer) {
+func TeardownProducer(p *kafkaadmin.Producer) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	p.Close()
 }
 
 
-func SetupConsumer() *kafka.Consumer {
-	c, err := kafka.NewConsumer(&resolver.ConfigMap{
-		"KAFKA_BROKER": os.Getenv("KAFKA_BROKER"),
-		"KAFKA_TOPIC": os.Getenv("KAFKA_TOPIC"),
-	})
-	if err != nil {
-		panic(err)
-	}
-	return c
-}
 
 func TeardownConsumer(c *kafka.Consumer) {
 	mutex.Lock()
@@ -70,11 +61,27 @@ func TeardownConsumer(c *kafka.Consumer) {
 }
 
 
+func SetupAdminClient() *kafkaadmin.Configurator {
+	a, err := kafkaadmin.New(&resolver.ConfigMap{
+		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+	})
+	if err != nil {
+		panic(err)
+	}
+	return a
+}
+
+func TeardownAdminClient(a *kafkaadmin.Configurator) {
+	mutex.Lock()
+	a.Close()
+	mutex.Unlock()
+}
+
 
 func SetupMongoClient() *mongo.DB {
 	c, err := mongo.NewDB(&resolver.ConfigMap{
-		"MONGODB_CONNECTION_URI": os.Getenv("MONGODB_CONNECTION_URI"),
-		"MONGODB_DATABASE": os.Getenv("MONGODB_DATABASE"),
+		"CONNECTION_URI": os.Getenv("MONGODB_CONNECTION_URI"),
+		"DATABASE": os.Getenv("MONGODB_DATABASE"),
 	})
 	if err != nil {
 		panic(err)
@@ -87,3 +94,11 @@ func TeardownMongoClient(c *mongo.DB) {
 }
 
 
+
+func TestMain(m *testing.M) {
+
+	conf = SetupAdminClient()
+	code := m.Run()
+	os.Exit(code)
+	TeardownAdminClient(conf)
+}

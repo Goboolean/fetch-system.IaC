@@ -5,4 +5,4 @@ test-app:
 	@docker compose -p fetch-system-iac -f ./deploy/docker-compose.test.yml up --attach server --build --abort-on-container-exit
 
 build-app:
-	docker build -t fetch-system-initializer:latest -f ./deploy/Dockerfile .
+	docker build -t fetch-system-initializer:latest -f ./deploy/Dockerfile.job .

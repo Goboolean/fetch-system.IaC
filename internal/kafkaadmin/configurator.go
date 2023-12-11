@@ -120,11 +120,19 @@ func (c *Configurator) DeleteAllTopics(ctx context.Context) error {
 		return err
 	}
 
-	if len(topicList) == 0 {
+	filteredTopicList := make([]string, 0)
+	for _, topic := range topicList {
+		if util.Contains(defaultTopicList, topic) {
+			continue
+		}
+		filteredTopicList = append(filteredTopicList, topic)
+	}
+
+	if len(filteredTopicList) == 0 {
 		return nil
 	}
 
-	result, err := c.client.DeleteTopics(ctx, topicList)
+	result, err := c.client.DeleteTopics(ctx, filteredTopicList)
 	if err != nil {
 		return err
 	}

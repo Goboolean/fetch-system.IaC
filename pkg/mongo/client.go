@@ -15,7 +15,7 @@ type DB struct {
 
 func NewDB(c *resolver.ConfigMap) (*DB, error) {
 
-	conn_url, err := c.GetStringKey("CONNECTION_URL")
+	conn_url, err := c.GetStringKey("CONNECTION_URI")
 	if err != nil {
 		return nil, err
 	}

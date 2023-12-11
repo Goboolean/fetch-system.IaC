@@ -10,8 +10,6 @@ import (
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
 	"github.com/stretchr/testify/assert"
-
-	_ "github.com/Goboolean/common/pkg/env"
 )
 
 func SetupConfigurator() *kafkaadmin.Configurator {
@@ -27,6 +25,8 @@ func SetupConfigurator() *kafkaadmin.Configurator {
 }
 
 func TeardownConfigurator(conf *kafkaadmin.Configurator) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	conf.Close()
 }
 

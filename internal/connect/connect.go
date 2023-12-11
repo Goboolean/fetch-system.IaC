@@ -16,7 +16,7 @@ import (
 
 type Client struct {
 	baseurl  string
-	mongourl string
+	mongouri string
 	database string
 }
 
@@ -39,7 +39,7 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 		scheme = "http"
 	}
 
-	mongourl, err := c.GetStringKey("MONGODB_CONNECTION_URL")
+	mongouri, err := c.GetStringKey("MONGODB_CONNECTION_URI")
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 
 	return &Client{
 		baseurl: u.String(),
-		mongourl: mongourl,
+		mongouri: mongouri,
 		database: database,
 	}, nil
 }
@@ -120,28 +120,15 @@ func (c *Client) CheckCompatibility(ctx context.Context) error {
 		return err
 	}
 
-	var (
-		sinkPluginExists   bool = false
-		sourcePluginExists bool = false
-	)
-
 	for _, plugin := range plugins {
-		if plugin.Class == "com.mongodb.kafka.connect.MongoSourceConnector" && plugin.Type == "source" {
-			sourcePluginExists = true
-		}
-		if plugin.Class == "com.mongodb.kafka.connect.MongoSinkConnector" && plugin.Type == "sink" {
-			sinkPluginExists = true
+		if plugin.Class == MongoSinkConnector && plugin.Type == "sink" {
+			return nil
 		}
 	}
 
-	if !sinkPluginExists {
-		return fmt.Errorf("sink plugin not found")
-	}
-	if !sourcePluginExists {
-		return fmt.Errorf("source plugin not found")
-	}
-	return nil
+	return fmt.Errorf("plugin %s not found", MongoSinkConnector)
 }
+
 
 
 func (c *Client) CreateConnector(ctx context.Context, topic string) error {
@@ -149,17 +136,15 @@ func (c *Client) CreateConnector(ctx context.Context, topic string) error {
 	jsonData, err := json.Marshal(CreateConnectorRequest{
 		Name: topic,
 		Config: ConnectorConfig{
-			ConnecctorClass: "com.mongodb.kafka.connect.MongoSinkConnector",
+			ConnecctorClass: MongoSinkConnector,
 			Topics:          topic,
-			ConnectionUri:   c.mongourl,
+			ConnectionUri:   c.mongouri,
 			Database:        c.database,
 			Collection:      topic,
-			KeyConverter:    "org.apache.kafka.connect.storage.StringConverter",
-			ValueConverter:  "org.apache.kafka.connect.json.JsonConverter",
+			KeyConverter:    StringConverter,
+			ValueConverter:  JsonConverter,
 			ValueConverterSchemasEnable: "false",
-			//KeyIgnore:       "true",
-			//InsertMode:      "insert",
-			//WritemodelStrategy: "com.mongodb.kafka.connect.sink.writemodel.strategy.ReplaceOneBusinessKeyStrategy",
+			RotateIntervalMs: "1000",
 		},
 	})
 
@@ -180,11 +165,6 @@ func (c *Client) CreateConnector(ctx context.Context, topic string) error {
 	}
 	defer resp.Body.Close()
 
-	_, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
 	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusCreated)
 	}
@@ -196,7 +176,7 @@ func (c *Client) CreateConnector(ctx context.Context, topic string) error {
 func (c *Client) CheckPluginConfig(ctx context.Context, topic string) error {
 	
 	jsonData, err := json.Marshal(PluginConfig{
-		ConnectorClass: "com.mongodb.kafka.connect.MongoSinkConnector",
+		ConnectorClass: MongoSinkConnector,
 		TasksMax:       "1",
 		Topics:         topic,
 	})
@@ -217,11 +197,6 @@ func (c *Client) CheckPluginConfig(ctx context.Context, topic string) error {
 	}
 	defer resp.Body.Close()
 
-	_, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
 	}
@@ -229,38 +204,82 @@ func (c *Client) CheckPluginConfig(ctx context.Context, topic string) error {
 }
 
 
+func (c *Client) CheckTaskStatus(ctx context.Context, topic string, taskid int) error {
 
-func (c *Client) GetConnectorConfiguration(ctx context.Context, topic string) (ConnectorConfigResponse, error){
-
-	var config ConnectorConfigResponse
-
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s", c.baseurl, topic), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s/tasks/%d/status", c.baseurl, topic, taskid), nil)
 	if err != nil {
-		return config, err
+		return err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return config, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return config, fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
+		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return config, err
+		return err
 	}
 
-    if err := json.Unmarshal(body, &config); err != nil {
-		return config, err
+	var status TaskStatus
+	if err := json.Unmarshal(body, &status); err != nil {
+		return err
 	}
-	return config, nil
+
+	if status.State != "RUNNING" {
+		return fmt.Errorf("unexpected status: received %s, expected %s", status.State, "RUNNING")
+	}
+
+	return nil
 }
+
+
+func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
+
+	var taskList []Task
+
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s/tasks", c.baseurl, topic), nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+    if err := json.Unmarshal(body, &taskList); err != nil {
+		return err
+	}
+
+	for _, task := range taskList {
+		if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+
 
 
 func (c *Client) DeleteConnector(ctx context.Context, topic string) error {

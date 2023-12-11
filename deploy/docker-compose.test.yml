@@ -3,16 +3,17 @@ services:
     build:
       context: ../
       dockerfile: ./deploy/Dockerfile.test
-    environment:
-      - MONGODB_CONNECTION_URL=mongodb://goboolean:password@mongodb-primary:27017/goboolean-stock
-      - MONGODB_DATABASE=goboolean-stock
-      - KAFKA_BOOTSTRAP_HOST=kafka:9092
-      - KAFKA_CONNECT_HOST=kafka-connect:8083
     depends_on:
       - kafka
       - mongodb-primary
       - mongodb-secondary
       - mongodb-arbiter
+      - kafka-connect
+    environment:
+      - MONGODB_CONNECTION_URI=mongodb://goboolean:password@mongodb-primary:27017/goboolean-stock
+      - MONGODB_DATABASE=goboolean-stock
+      - KAFKA_BOOTSTRAP_HOST=kafka:9092
+      - KAFKA_CONNECT_HOST=kafka-connect:8083
 
   kafka:
     hostname: kafka
@@ -86,6 +87,11 @@ services:
     build:
       context: ../
       dockerfile: ./deploy/Dockerfile.kafka-connect
+    depends_on:
+      - kafka
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
     ports:
       - "8083"
     environment:

@@ -19,7 +19,7 @@ var mutex = &sync.Mutex{}
 func SetupConnect() *connect.Client {
 	c, err := connect.New(&resolver.ConfigMap{
 		"HOST": os.Getenv("KAFKA_CONNECT_HOST"),
-		"MONGODB_CONNECTION_URL": os.Getenv("MONGODB_CONNECTION_URL"),
+		"MONGODB_CONNECTION_URI": os.Getenv("MONGODB_CONNECTION_URI"),
 		"MONGODB_DATABASE": os.Getenv("MONGODB_DATABASE"),
 	})
 	if err != nil {
@@ -73,7 +73,7 @@ func TeardownConsumer(c *kafka.Consumer) {
 
 func SetupMongoClient() *mongo.DB {
 	c, err := mongo.NewDB(&resolver.ConfigMap{
-		"MONGODB_CONNECTION_URL": os.Getenv("MONGODB_CONNECTION_URL"),
+		"MONGODB_CONNECTION_URI": os.Getenv("MONGODB_CONNECTION_URI"),
 		"MONGODB_DATABASE": os.Getenv("MONGODB_DATABASE"),
 	})
 	if err != nil {

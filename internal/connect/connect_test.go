@@ -2,7 +2,6 @@ package connect_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,7 +30,7 @@ func TestConnector(t *testing.T) {
 	c := SetupConnect()
 	defer TeardownConnect(c)
 
-	const topic = "test.connector8.connect"
+	const topic = "test.connector.connect"
 
 	t.Run("CreateConnector", func(t *testing.T) {
 		ctx := context.Background()
@@ -46,10 +45,8 @@ func TestConnector(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Contains(t, list, topic)
 
-		config, err := c.GetConnectorConfiguration(ctx, topic)
+		err = c.CheckTasksStatus(ctx, topic)
 		assert.NoError(t, err)
-		assert.NotNil(t, config)
-		fmt.Println(config)
 	})
 
 	t.Run("DeleteConnector", func(t *testing.T) {

@@ -79,12 +79,13 @@ func (c *Client) Ping(ctx context.Context) error {
     }
     defer resp.Body.Close()
 
-	if _, err := io.ReadAll(resp.Body); err != nil {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
 		return err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
+		return fmt.Errorf(string(body))
     }
 
 	return nil
@@ -113,7 +114,7 @@ func (c *Client) CheckCompatibility(ctx context.Context) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
+		return fmt.Errorf(string(body))
 	}
 
 	var plugins []ConnectorPlugin
@@ -166,8 +167,13 @@ func (c *Client) CreateConnector(ctx context.Context, topic string) error {
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusCreated)
+		return fmt.Errorf(string(body))
 	}
 
 	return nil
@@ -220,13 +226,13 @@ func (c *Client) CheckTaskStatus(ctx context.Context, topic string, taskid int) 
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
-	}
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(string(body))
 	}
 
 	var status TaskStatus
@@ -259,18 +265,20 @@ func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
-	}
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf(string(body))
+	}
+
     if err := json.Unmarshal(body, &taskList); err != nil {
 		return err
 	}
+
+	fmt.Println(string(body))
 
 	for _, task := range taskList {
 		if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
@@ -298,14 +306,15 @@ func (c *Client) DeleteConnector(ctx context.Context, topic string) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusNoContent {
-		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusNoContent)
-	}
-
-	_, err = io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf(string(body))
+	}
+
 	return nil
 }
 
@@ -324,13 +333,13 @@ func (c *Client) GetConnectors(ctx context.Context) ([]string, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
-	}
-
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf(string(body))
 	}
 
     var connectors []string

@@ -37,9 +37,9 @@ func TestMethod(t *testing.T) {
 	var tickerList []string
 	var tickerDetails []*model.TickerDetailResult
 
-	t.Run("GetAllProducts", func(t *testing.T) {
+	t.Run("GetAllTickers", func(t *testing.T) {
 		var err error
-		tickerList, err = p.GetAllProducts(context.Background())
+		tickerList, err = p.GetAllTickers(context.Background())
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tickerList)
 	})

@@ -33,7 +33,7 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 }
 
 
-func (c *Client) GetAllProducts(ctx context.Context) ([]string, error){
+func (c *Client) GetAllTickers(ctx context.Context) ([]string, error){
 	var includeOTC = true
 	resp, err := c.conn.GetAllTickersSnapshot(ctx, &models.GetAllTickersSnapshotParams{
 		Locale: models.US,

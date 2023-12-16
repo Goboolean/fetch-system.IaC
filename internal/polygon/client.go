@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/Goboolean/fetch-system.IaC/internal/model"
 	"github.com/polygon-io/client-go/rest"
 	"github.com/polygon-io/client-go/rest/models"
 )
@@ -52,7 +53,7 @@ func (c *Client) GetAllProducts(ctx context.Context) ([]string, error){
 }
 
 
-func (c *Client) GetTickerDetail(ctx context.Context, ticker string) (*TickerDetail, error) {
+func (c *Client) GetTickerDetail(ctx context.Context, ticker string) (*model.TickerDetail, error) {
 
 	resp, err := c.conn.GetTickerDetails(ctx, &models.GetTickerDetailsParams{
 		Ticker: ticker,
@@ -61,7 +62,7 @@ func (c *Client) GetTickerDetail(ctx context.Context, ticker string) (*TickerDet
 		return nil, err
 	}
 
-	return &TickerDetail{
+	return &model.TickerDetail{
 		Ticker: resp.Results.Ticker,
 		Name: resp.Results.Name,
 		Description: resp.Results.Description,
@@ -72,9 +73,9 @@ func (c *Client) GetTickerDetail(ctx context.Context, ticker string) (*TickerDet
 
 var defaultSemaphoreSize = 100
 
-func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]*TickerDetailResult, error) {
+func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]*model.TickerDetailResult, error) {
 
-	details := make([]*TickerDetailResult, len(tickers))
+	details := make([]*model.TickerDetailResult, len(tickers))
 
 	semaphore := make(chan struct{}, defaultSemaphoreSize)
 	wg := sync.WaitGroup{}
@@ -93,15 +94,15 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 				Ticker: ticker,
 			})
 			if err != nil {
-				details[i] = &TickerDetailResult{
+				details[i] = &model.TickerDetailResult{
 					Message: resp.ErrorMessage,
 					Status: resp.Status,
 				}
 				return
 			}
 
-			details[i] = &TickerDetailResult{
-				TickerDetail: TickerDetail{
+			details[i] = &model.TickerDetailResult{
+				TickerDetail: model.TickerDetail{
 					Ticker: resp.Results.Ticker,
 					Name: resp.Results.Name,
 					Description: resp.Results.Description,

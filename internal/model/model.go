@@ -1,4 +1,4 @@
-package polygon
+package model
 
 
 type TickerDetail struct {

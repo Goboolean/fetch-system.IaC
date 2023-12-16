@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/Goboolean/fetch-system.IaC/internal/model"
 	"github.com/Goboolean/fetch-system.IaC/internal/polygon"
 	"github.com/stretchr/testify/assert"
 
@@ -34,7 +35,7 @@ func TestMethod(t *testing.T) {
 	p := SetupPolygon()
 
 	var tickerList []string
-	var tickerDetails []*polygon.TickerDetailResult
+	var tickerDetails []*model.TickerDetailResult
 
 	t.Run("GetAllProducts", func(t *testing.T) {
 		var err error

@@ -14,9 +14,9 @@ jobs:
 
       - name: Decrypt environment variables
         run: |
-          echo "${{ secrets.ENV }}" > .env
+          echo "${{ secrets.ENV }}" > deploy/.env
 
-      - name: Build an image
+      - name: Run tests
         run: |
           make test-app
 

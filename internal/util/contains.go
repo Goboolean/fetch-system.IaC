@@ -1,9 +1,11 @@
 package util
 
+import "reflect"
 
-func Contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
+
+func Contains[T any](list []T, target T) bool {
+	for _, v := range list {
+		if reflect.DeepEqual(v, target) {
 			return true
 		}
 	}

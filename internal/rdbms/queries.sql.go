@@ -9,26 +9,26 @@ import (
 	"context"
 )
 
-const getAllMetadata = `-- name: GetAllMetadata :many
+const getAllProducts = `-- name: GetAllProducts :many
 SELECT id, symbol, locale, market FROM product_meta
 `
 
-type GetAllMetadataRow struct {
+type GetAllProductsRow struct {
 	ID     string
 	Symbol string
 	Locale string
 	Market string
 }
 
-func (q *Queries) GetAllMetadata(ctx context.Context) ([]GetAllMetadataRow, error) {
-	rows, err := q.db.Query(ctx, getAllMetadata)
+func (q *Queries) GetAllProducts(ctx context.Context) ([]GetAllProductsRow, error) {
+	rows, err := q.db.Query(ctx, getAllProducts)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetAllMetadataRow
+	var items []GetAllProductsRow
 	for rows.Next() {
-		var i GetAllMetadataRow
+		var i GetAllProductsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Symbol,
@@ -45,7 +45,7 @@ func (q *Queries) GetAllMetadata(ctx context.Context) ([]GetAllMetadataRow, erro
 	return items, nil
 }
 
-type InsertManyMetadataParams struct {
+type InsertProductsParams struct {
 	ID     string
 	Symbol string
 	Locale string

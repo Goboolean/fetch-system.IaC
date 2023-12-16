@@ -14,11 +14,11 @@ services:
       - MONGODB_DATABASE=goboolean-stock
       - KAFKA_BOOTSTRAP_HOST=kafka:9092
       - KAFKA_CONNECT_HOST=kafka-connect:8083
-      - POSTGRESQL_USERNAME=goboolean
-      - POSTGRESQL_PASSWORD=password
-      - POSTGRESQL_DATABASE=goboolean
-      - POSTGRESQL_HOST=postgresql
-      - POSTGRESQL_PORT=5432
+      - POSTGRES_HOST=postgresql
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=goboolean
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DATABASE=goboolean
 
   kafka:
     hostname: kafka

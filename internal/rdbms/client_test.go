@@ -1,15 +1,17 @@
 package rdbms_test
 
 import (
+	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/rdbms"
 	"github.com/stretchr/testify/assert"
+
+	_ "github.com/Goboolean/common/pkg/env"
 )
-
-
 
 
 
@@ -41,7 +43,10 @@ func TestClient(t *testing.T) {
 	defer TeardownPostgreSQL(c)
 
 	t.Run("Ping()", func(t *testing.T) {
-		err := c.Ping()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err := c.Ping(ctx)
 		assert.NoError(t, err)
 	})
 }

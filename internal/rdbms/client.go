@@ -1,16 +1,15 @@
 package rdbms
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/Goboolean/common/pkg/resolver"
-	_ "github.com/lib/pq"
 )
 
-type Client struct {
-	db *sql.DB
-}
+
+type Client = Queries
 
 func NewDB(c *resolver.ConfigMap) (*Client, error) {
 	user, err := c.GetStringKey("USER")
@@ -41,21 +40,21 @@ func NewDB(c *resolver.ConfigMap) (*Client, error) {
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		host, port, user, password, database)
 
-	db, err := sql.Open("postgres", psqlInfo)
+	db, err := pgx.Connect(context.Background(), psqlInfo)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{
-		db: db,
-	}, nil
+	q := New(db)
+
+	return q, nil
 }
 
-func (p *Client) Close() error {
-	return p.db.Close()
+func (c *Client) Ping(ctx context.Context) error {
+	return c.db.(*pgx.Conn).Ping(ctx)
 }
 
-func (p *Client) Ping() error {
-	return p.db.Ping()
+func (c *Client) Close() {
+	c.db.(*pgx.Conn).Close(context.Background())
 }

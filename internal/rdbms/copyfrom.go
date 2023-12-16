@@ -9,13 +9,13 @@ import (
 	"context"
 )
 
-// iteratorForInsertManyMetadata implements pgx.CopyFromSource.
-type iteratorForInsertManyMetadata struct {
-	rows                 []InsertManyMetadataParams
+// iteratorForInsertProducts implements pgx.CopyFromSource.
+type iteratorForInsertProducts struct {
+	rows                 []InsertProductsParams
 	skippedFirstNextCall bool
 }
 
-func (r *iteratorForInsertManyMetadata) Next() bool {
+func (r *iteratorForInsertProducts) Next() bool {
 	if len(r.rows) == 0 {
 		return false
 	}
@@ -27,7 +27,7 @@ func (r *iteratorForInsertManyMetadata) Next() bool {
 	return len(r.rows) > 0
 }
 
-func (r iteratorForInsertManyMetadata) Values() ([]interface{}, error) {
+func (r iteratorForInsertProducts) Values() ([]interface{}, error) {
 	return []interface{}{
 		r.rows[0].ID,
 		r.rows[0].Symbol,
@@ -36,10 +36,10 @@ func (r iteratorForInsertManyMetadata) Values() ([]interface{}, error) {
 	}, nil
 }
 
-func (r iteratorForInsertManyMetadata) Err() error {
+func (r iteratorForInsertProducts) Err() error {
 	return nil
 }
 
-func (q *Queries) InsertManyMetadata(ctx context.Context, arg []InsertManyMetadataParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"product_meta"}, []string{"id", "symbol", "locale", "market"}, &iteratorForInsertManyMetadata{rows: arg})
+func (q *Queries) InsertProducts(ctx context.Context, arg []InsertProductsParams) (int64, error) {
+	return q.db.CopyFrom(ctx, []string{"product_meta"}, []string{"id", "symbol", "locale", "market"}, &iteratorForInsertProducts{rows: arg})
 }

@@ -19,6 +19,8 @@ services:
       - POSTGRES_USER=goboolean
       - POSTGRES_PASSWORD=password
       - POSTGRES_DATABASE=goboolean
+    env_file:
+      - .env
 
   kafka:
     hostname: kafka

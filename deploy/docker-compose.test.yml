@@ -14,6 +14,11 @@ services:
       - MONGODB_DATABASE=goboolean-stock
       - KAFKA_BOOTSTRAP_HOST=kafka:9092
       - KAFKA_CONNECT_HOST=kafka-connect:8083
+      - POSTGRESQL_USERNAME=goboolean
+      - POSTGRESQL_PASSWORD=password
+      - POSTGRESQL_DATABASE=goboolean
+      - POSTGRESQL_HOST=postgresql
+      - POSTGRESQL_PORT=5432
 
   kafka:
     hostname: kafka
@@ -110,3 +115,14 @@ services:
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+
+  postgresql:
+    image: bitnami/postgresql:latest
+    ports:
+      - "5432"
+    environment:
+      - POSTGRESQL_USERNAME=goboolean
+      - POSTGRESQL_PASSWORD=password
+      - POSTGRESQL_DATABASE=goboolean
+    volumes:
+      - ./api/sql/schema.sql:/docker-entrypoint-initdb.d/init.sql

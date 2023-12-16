@@ -6,3 +6,6 @@ test-app:
 
 build-app:
 	docker build -t fetch-system-initializer:latest -f ./deploy/Dockerfile.job .
+
+generate-sqlc:
+	sqlc generate -f ./api/sql/sqlc.yml

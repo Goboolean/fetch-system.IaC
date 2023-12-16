@@ -7,15 +7,15 @@ import (
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
-	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
-	"github.com/Goboolean/fetch-system.IaC/pkg/kafka"
+	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
+	kafka_client "github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/Goboolean/fetch-system.IaC/pkg/mongo"
 
 	_ "github.com/Goboolean/common/pkg/env"
 )
 
 var mutex = sync.Mutex{}
-var conf *kafkaadmin.Configurator
+var conf *kafka.Configurator
 
 
 func SetupConnect() *connect.Client {
@@ -36,8 +36,8 @@ func TeardownConnect(c *connect.Client) {
 
 
 
-func SetupProducer() *kafkaadmin.Producer {
-	p, err := kafkaadmin.NewProducer(&resolver.ConfigMap{
+func SetupProducer() *kafka.Producer {
+	p, err := kafka.NewProducer(&resolver.ConfigMap{
 		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
 	})
 	if err != nil {
@@ -46,7 +46,7 @@ func SetupProducer() *kafkaadmin.Producer {
 	return p
 }
 
-func TeardownProducer(p *kafkaadmin.Producer) {
+func TeardownProducer(p *kafka.Producer) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	p.Close()
@@ -54,15 +54,15 @@ func TeardownProducer(p *kafkaadmin.Producer) {
 
 
 
-func TeardownConsumer(c *kafka.Consumer) {
+func TeardownConsumer(c *kafka_client.Consumer) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	c.Close()
 }
 
 
-func SetupAdminClient() *kafkaadmin.Configurator {
-	a, err := kafkaadmin.New(&resolver.ConfigMap{
+func SetupAdminClient() *kafka.Configurator {
+	a, err := kafka.New(&resolver.ConfigMap{
 		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
 	})
 	if err != nil {
@@ -71,7 +71,7 @@ func SetupAdminClient() *kafkaadmin.Configurator {
 	return a
 }
 
-func TeardownAdminClient(a *kafkaadmin.Configurator) {
+func TeardownAdminClient(a *kafka.Configurator) {
 	mutex.Lock()
 	a.Close()
 	mutex.Unlock()

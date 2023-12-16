@@ -29,10 +29,30 @@ func SetupPolygon() *polygon.Client {
 
 
 
-func TestGetAllProducts(t *testing.T) {
+func TestMethod(t *testing.T) {
+
 	p := SetupPolygon()
 
-	list, err := p.GetAllProducts(context.Background())
-	assert.NoError(t, err)
-	assert.NotEmpty(t, list)
+	var tickerList []string
+	var tickerDetails []*polygon.TickerDetailResult
+
+	t.Run("GetAllProducts", func(t *testing.T) {
+		var err error
+		tickerList, err = p.GetAllProducts(context.Background())
+		assert.NoError(t, err)
+		assert.NotEmpty(t, tickerList)
+	})
+
+	t.Run("GetTickerDetail", func(t *testing.T) {
+		tickerDetail, err := p.GetTickerDetail(context.Background(), tickerList[0])
+		assert.NoError(t, err)
+		assert.NotEmpty(t, tickerDetail)
+	})
+
+	t.Run("GetTickerDetailMany", func(t *testing.T) {
+		var err error
+		tickerDetails, err = p.GetTickerDetailsMany(context.Background(), tickerList[:100])
+		assert.NoError(t, err)
+		assert.NotEmpty(t, tickerDetails)
+	})
 }

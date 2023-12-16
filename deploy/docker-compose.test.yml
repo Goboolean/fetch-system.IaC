@@ -125,4 +125,4 @@ services:
       - POSTGRESQL_PASSWORD=password
       - POSTGRESQL_DATABASE=goboolean
     volumes:
-      - ./api/sql/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../api/sql/schema.sql:/docker-entrypoint-initdb.d/init.sql

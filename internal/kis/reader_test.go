@@ -16,5 +16,8 @@ func TestMethod(t *testing.T) {
 		tickers, err := r.ReadAllTickerDetalis("../../api/csv/data.csv")
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tickers)
+		assert.NotEmpty(t, tickers[0].Ticker)
+		assert.NotEmpty(t, tickers[0].Name)
+		assert.NotEmpty(t, tickers[0].Exchange)
 	})
 }

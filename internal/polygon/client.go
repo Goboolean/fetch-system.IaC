@@ -2,6 +2,7 @@ package polygon
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/Goboolean/common/pkg/resolver"
@@ -95,7 +96,10 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 			})
 			if err != nil {
 				details[i] = &model.TickerDetailResult{
-					Message: resp.ErrorMessage,
+					TickerDetail: model.TickerDetail{
+						Ticker: ticker,
+					},
+					Message: strings.Split(err.Error(), ":")[0],
 					Status: resp.Status,
 				}
 				return

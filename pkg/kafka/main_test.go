@@ -8,19 +8,19 @@ import (
 	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/common/pkg/resolver"
 	_ "github.com/Goboolean/common/pkg/env"
-	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
+	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
 	log "github.com/sirupsen/logrus"
 
 )
 
 var mutex = &sync.Mutex{}
 
-var conf *kafkaadmin.Configurator
+var conf *kafka.Configurator
 
 
 
-func SetupConfigurator() *kafkaadmin.Configurator {
-	c, err := kafkaadmin.New(&resolver.ConfigMap{
+func SetupConfigurator() *kafka.Configurator {
+	c, err := kafka.New(&resolver.ConfigMap{
 		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
 	})
 	if err != nil {
@@ -29,7 +29,7 @@ func SetupConfigurator() *kafkaadmin.Configurator {
 	return c
 }
 
-func TeardownConfigurator(c *kafkaadmin.Configurator) {
+func TeardownConfigurator(c *kafka.Configurator) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	c.Close()

@@ -50,3 +50,45 @@ func TestClient(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+
+
+
+func TestInsertScenario(t *testing.T) {
+
+	c := SetupPostgreSQL()
+
+	t.Cleanup(func() {
+		err := c.DeleteAllProducts(context.Background())
+		assert.NoError(t, err)
+
+		TeardownPostgreSQL(c)
+	})
+
+	var products = []rdbms.InsertProductsParams{
+		{
+			ID: "stock.goboolean.test",
+			Symbol: "goboolean",
+			Locale: "test",
+			Market: "stock",
+		},
+		{
+			ID: "stock.golution.test",
+			Symbol: "goboolean",
+			Locale: "test",
+			Market: "stock",
+		},
+	}
+
+	t.Run("InsertProducts()", func(t *testing.T) {
+		v, err := c.InsertProducts(context.Background(), products)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(2), v)
+	})
+
+	t.Run("GetAllProducts()", func(t *testing.T) {
+		results, err := c.GetAllProducts(context.Background())
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(results))
+	})
+}

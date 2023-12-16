@@ -9,6 +9,15 @@ import (
 	"context"
 )
 
+const deleteAllProducts = `-- name: DeleteAllProducts :exec
+DELETE FROM product_meta
+`
+
+func (q *Queries) DeleteAllProducts(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteAllProducts)
+	return err
+}
+
 const getAllProducts = `-- name: GetAllProducts :many
 SELECT id, symbol, locale, market FROM product_meta
 `

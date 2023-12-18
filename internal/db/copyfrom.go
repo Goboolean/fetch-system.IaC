@@ -3,7 +3,7 @@
 //   sqlc v1.19.1
 // source: copyfrom.go
 
-package rdbms
+package db
 
 import (
 	"context"

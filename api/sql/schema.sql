@@ -1,6 +1,6 @@
-CREATE TYPE playform AS ENUM ('polygon', 'kis', 'buycycle');
-CREATE TYPE market AS ENUM ('stock', 'crypto', 'forex', 'option', 'future');
-CREATE TYPE locale AS ENUM ('kor', 'usa');
+CREATE TYPE platform AS ENUM ('POLYGON', 'KIS', 'BUYCYCLE');
+CREATE TYPE market AS ENUM ('STOCK', 'CRYPTO', 'FOREX', 'OPTION', 'FUTURE');
+CREATE TYPE locale AS ENUM ('KOR', 'USA');
 
 /* metadata table for product data */
 CREATE TABLE product_meta (

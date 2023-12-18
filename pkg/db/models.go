@@ -14,8 +14,8 @@ import (
 type Locale string
 
 const (
-	LocaleKor Locale = "kor"
-	LocaleUsa Locale = "usa"
+	LocaleKOR Locale = "KOR"
+	LocaleUSA Locale = "USA"
 )
 
 func (e *Locale) Scan(src interface{}) error {
@@ -56,11 +56,11 @@ func (ns NullLocale) Value() (driver.Value, error) {
 type Market string
 
 const (
-	MarketStock  Market = "stock"
-	MarketCrypto Market = "crypto"
-	MarketForex  Market = "forex"
-	MarketOption Market = "option"
-	MarketFuture Market = "future"
+	MarketSTOCK  Market = "STOCK"
+	MarketCRYPTO Market = "CRYPTO"
+	MarketFOREX  Market = "FOREX"
+	MarketOPTION Market = "OPTION"
+	MarketFUTURE Market = "FUTURE"
 )
 
 func (e *Market) Scan(src interface{}) error {
@@ -98,53 +98,53 @@ func (ns NullMarket) Value() (driver.Value, error) {
 	return string(ns.Market), nil
 }
 
-type Playform string
+type Platform string
 
 const (
-	PlayformPolygon  Playform = "polygon"
-	PlayformKis      Playform = "kis"
-	PlayformBuycycle Playform = "buycycle"
+	PlatformPOLYGON  Platform = "POLYGON"
+	PlatformKIS      Platform = "KIS"
+	PlatformBUYCYCLE Platform = "BUYCYCLE"
 )
 
-func (e *Playform) Scan(src interface{}) error {
+func (e *Platform) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = Playform(s)
+		*e = Platform(s)
 	case string:
-		*e = Playform(s)
+		*e = Platform(s)
 	default:
-		return fmt.Errorf("unsupported scan type for Playform: %T", src)
+		return fmt.Errorf("unsupported scan type for Platform: %T", src)
 	}
 	return nil
 }
 
-type NullPlayform struct {
-	Playform Playform
-	Valid    bool // Valid is true if Playform is not NULL
+type NullPlatform struct {
+	Platform Platform
+	Valid    bool // Valid is true if Platform is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullPlayform) Scan(value interface{}) error {
+func (ns *NullPlatform) Scan(value interface{}) error {
 	if value == nil {
-		ns.Playform, ns.Valid = "", false
+		ns.Platform, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.Playform.Scan(value)
+	return ns.Platform.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullPlayform) Value() (driver.Value, error) {
+func (ns NullPlatform) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.Playform), nil
+	return string(ns.Platform), nil
 }
 
 type ProductMetum struct {
 	ID          string
 	Symbol      string
-	Platform    Playform
+	Platform    interface{}
 	Locale      Locale
 	Market      Market
 	Name        pgtype.Text

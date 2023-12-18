@@ -136,6 +136,7 @@ func (q *Queries) GetProductsByCondition(ctx context.Context, arg GetProductsByC
 
 type InsertProductsParams struct {
 	ID          string
+	Platform    interface{}
 	Symbol      string
 	Locale      Locale
 	Market      Market

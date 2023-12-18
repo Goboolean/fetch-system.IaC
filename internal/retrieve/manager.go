@@ -97,8 +97,9 @@ func (m *Manager) StoreUSAStocks(ctx context.Context) error {
 		dtos[i] = db.InsertProductsParams{
 			ID:     fmt.Sprintf("%s.%s.%s", "stock", detail.Ticker, "usa"),
 			Symbol: detail.Ticker,
-			Locale: db.LocaleUsa,
-			Market: db.MarketStock,
+			Locale: db.LocaleUSA,
+			Market: db.MarketSTOCK,
+			Platform: db.PlatformPOLYGON,
 		}
 	}
 
@@ -123,8 +124,9 @@ func (m *Manager) StoreKORStocks(ctx context.Context) error {
 		dtos[i] = db.InsertProductsParams{
 			ID:     fmt.Sprintf("%s.%s.%s", "stock", detail.Ticker, "kor"),
 			Symbol: detail.Ticker,
-			Locale: "kor",
-			Market: "stock",
+			Locale: db.LocaleKOR,
+			Market: db.MarketSTOCK,
+			Platform: db.PlatformPOLYGON,
 		}
 	}
 

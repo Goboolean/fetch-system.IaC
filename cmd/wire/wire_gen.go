@@ -184,7 +184,7 @@ func ProvideKafkaConnectConfig() *resolver.ConfigMap {
 
 func ProvideKISConfig() *resolver.ConfigMap {
 	return &resolver.ConfigMap{
-		"FILEPATH": "../../api/csv/data.csv",
+		"FILEPATH": "./api/csv/data.csv",
 	}
 }
 

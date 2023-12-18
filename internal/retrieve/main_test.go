@@ -59,6 +59,36 @@ func TestMain(m *testing.M) {
 }
 
 
+
+func TestStoreKORStocks(t *testing.T) {
+	
+	database, cleanup, err := wire.InitializePostgreSQLClient()
+	if assert.NoError(t, err) {
+		t.Cleanup(cleanup)
+	}
+
+	t.Run("StoreKORStocks", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		err := manager.StoreKORStocks(ctx)
+		assert.NoError(t, err)
+	})
+
+	t.Run("VerifyResult", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		tickerDetails, err := database.GetProductsByCondition(ctx, db.GetProductsByConditionParams{
+			Locale: db.LocaleKOR,
+			Market: db.MarketSTOCK,
+		})
+		assert.NoError(t, err)
+		assert.NotEmpty(t, tickerDetails)
+		assert.GreaterOrEqual(t, len(tickerDetails), 2000)
+	})
+}
+
 func TestStoreUSAStocks(t *testing.T) {
 
 	database, cleanup, err := wire.InitializePostgreSQLClient()
@@ -79,8 +109,8 @@ func TestStoreUSAStocks(t *testing.T) {
 		defer cancel()
 
 		tickerDetails, err := database.GetProductsByCondition(ctx, db.GetProductsByConditionParams{
-			Locale: db.LocaleUsa,
-			Market: db.MarketStock,
+			Locale: db.LocaleUSA,
+			Market: db.MarketSTOCK,
 		})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tickerDetails)

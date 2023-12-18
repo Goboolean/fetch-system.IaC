@@ -1,4 +1,7 @@
-package inject
+//go:build wireinject
+// +build wireinject
+
+package wire
 
 import (
 	"os"

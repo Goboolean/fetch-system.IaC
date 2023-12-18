@@ -4,7 +4,7 @@
 //go:build !wireinject
 // +build !wireinject
 
-package inject
+package wire
 
 import (
 	"github.com/Goboolean/common/pkg/resolver"
@@ -19,7 +19,7 @@ import (
 	"os"
 )
 
-// Injectors from wire.go:
+// Injectors from wire_setup.go:
 
 func InitializeKafkaConfigurator() (*kafka.Configurator, func(), error) {
 	configMap := ProvideKafkaConfig()
@@ -146,7 +146,7 @@ func InitializeRetriever() (*retrieve.Manager, func(), error) {
 	}, nil
 }
 
-// wire.go:
+// wire_setup.go:
 
 func ProvideKafkaConfig() *resolver.ConfigMap {
 	return &resolver.ConfigMap{

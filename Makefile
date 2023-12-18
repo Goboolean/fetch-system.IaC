@@ -11,4 +11,4 @@ generate-sqlc:
 	sqlc generate -f ./api/sql/sqlc.yml
 
 generate-wire:
-	wire cmd/wire/wire.go
+	wire cmd/wire/wire_setup.go

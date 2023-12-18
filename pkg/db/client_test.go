@@ -1,4 +1,4 @@
-package rdbms_test
+package db_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.IaC/internal/rdbms"
+	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/Goboolean/common/pkg/env"
@@ -15,8 +15,8 @@ import (
 
 
 
-func SetupPostgreSQL() *rdbms.Client {
-	c, err := rdbms.NewDB(&resolver.ConfigMap{
+func SetupPostgreSQL() *db.Client {
+	c, err := db.NewDB(&resolver.ConfigMap{
 		"HOST": os.Getenv("POSTGRES_HOST"),
 		"PORT": os.Getenv("POSTGRES_PORT"),
 		"USER": os.Getenv("POSTGRES_USER"),
@@ -31,7 +31,7 @@ func SetupPostgreSQL() *rdbms.Client {
 	return c
 }
 
-func TeardownPostgreSQL(c *rdbms.Client) {
+func TeardownPostgreSQL(c *db.Client) {
 	c.Close()
 }
 
@@ -65,7 +65,7 @@ func TestInsertScenario(t *testing.T) {
 		TeardownPostgreSQL(c)
 	})
 
-	var products = []rdbms.InsertProductsParams{
+	var products = []db.InsertProductsParams{
 		{
 			ID: "stock.goboolean.test",
 			Symbol: "goboolean",

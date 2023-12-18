@@ -8,6 +8,7 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/model"
 	"github.com/Goboolean/fetch-system.IaC/internal/polygon"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 
@@ -126,7 +127,15 @@ func (m *Manager) StoreKORStocks(ctx context.Context) error {
 			Symbol: detail.Ticker,
 			Locale: db.LocaleKOR,
 			Market: db.MarketSTOCK,
-			Platform: db.PlatformPOLYGON,
+			Platform: db.PlatformBUYCYCLE,
+			Name: pgtype.Text{
+				String: detail.Name,
+				Valid: (detail.Name != ""),
+			},
+			Description: pgtype.Text{
+				String: detail.Description,
+				Valid: (detail.Description != ""),
+			},
 		}
 	}
 

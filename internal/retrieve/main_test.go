@@ -47,6 +47,16 @@ func Teardown() {
 	for _, cleanup := range cleanups {
 		cleanup()
 	}
+
+	db, cleanup, err := wire.InitializePostgreSQLClient()
+	if err != nil {
+		panic(err)
+	}
+	defer cleanup()
+
+	if err := db.DeleteAllProducts(context.Background()); err != nil {
+		panic(err)
+	}
 }
 
 
@@ -80,8 +90,8 @@ func TestStoreKORStocks(t *testing.T) {
 		defer cancel()
 
 		tickerDetails, err := database.GetProductsByCondition(ctx, db.GetProductsByConditionParams{
-			Locale: db.LocaleKOR,
 			Market: db.MarketSTOCK,
+			Platform: db.PlatformBUYCYCLE,
 		})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tickerDetails)
@@ -109,8 +119,8 @@ func TestStoreUSAStocks(t *testing.T) {
 		defer cancel()
 
 		tickerDetails, err := database.GetProductsByCondition(ctx, db.GetProductsByConditionParams{
-			Locale: db.LocaleUSA,
 			Market: db.MarketSTOCK,
+			Platform: db.PlatformPOLYGON,
 		})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tickerDetails)

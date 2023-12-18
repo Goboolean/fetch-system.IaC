@@ -144,7 +144,7 @@ func (ns NullPlatform) Value() (driver.Value, error) {
 type ProductMetum struct {
 	ID          string
 	Symbol      string
-	Platform    interface{}
+	Platform    Platform
 	Locale      Locale
 	Market      Market
 	Name        pgtype.Text

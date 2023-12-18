@@ -4,9 +4,9 @@ CREATE TYPE locale AS ENUM ('KOR', 'USA');
 
 /* metadata table for product data */
 CREATE TABLE product_meta (
-  id          varchar(24) NOT NULL,  /* an identifier form : {market}.{symbol}.{locale} */
-  symbol      varchar(8)  NOT NULL, /* product symbol */
-  platform    playform    NOT NULL, /* ex) polygon,   */
+  id          varchar(32) NOT NULL,  /* an identifier form : {market}.{symbol}.{locale} */
+  symbol      varchar(16)  NOT NULL, /* product symbol */
+  platform    platform    NOT NULL, /* ex) polygon,   */
   locale      locale      NOT NULL, /* locale of product */
   market      market      NOT NULL, /* market of product */
 

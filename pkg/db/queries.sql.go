@@ -21,11 +21,12 @@ func (q *Queries) DeleteAllProducts(ctx context.Context) error {
 }
 
 const getAllProducts = `-- name: GetAllProducts :many
-SELECT id, symbol, locale, market, name, description FROM product_meta
+SELECT id, platform, symbol, locale, market, name, description FROM product_meta
 `
 
 type GetAllProductsRow struct {
 	ID          string
+	Platform    Platform
 	Symbol      string
 	Locale      Locale
 	Market      Market
@@ -44,6 +45,7 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]GetAllProductsRow, erro
 		var i GetAllProductsRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Platform,
 			&i.Symbol,
 			&i.Locale,
 			&i.Market,
@@ -61,12 +63,13 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]GetAllProductsRow, erro
 }
 
 const getProductById = `-- name: GetProductById :one
-SELECT id, symbol, locale, market, name, description FROM product_meta
+SELECT id, platform, symbol, locale, market, name, description FROM product_meta
 WHERE id = $1
 `
 
 type GetProductByIdRow struct {
 	ID          string
+	Platform    Platform
 	Symbol      string
 	Locale      Locale
 	Market      Market
@@ -79,6 +82,7 @@ func (q *Queries) GetProductById(ctx context.Context, id string) (GetProductById
 	var i GetProductByIdRow
 	err := row.Scan(
 		&i.ID,
+		&i.Platform,
 		&i.Symbol,
 		&i.Locale,
 		&i.Market,
@@ -89,17 +93,18 @@ func (q *Queries) GetProductById(ctx context.Context, id string) (GetProductById
 }
 
 const getProductsByCondition = `-- name: GetProductsByCondition :many
-SELECT id, symbol, locale, market, name, description FROM product_meta
-WHERE locale = $1 AND market = $2
+SELECT id, platform, symbol, locale, market, name, description FROM product_meta
+WHERE platform = $1 AND market = $2
 `
 
 type GetProductsByConditionParams struct {
-	Locale Locale
-	Market Market
+	Platform Platform
+	Market   Market
 }
 
 type GetProductsByConditionRow struct {
 	ID          string
+	Platform    Platform
 	Symbol      string
 	Locale      Locale
 	Market      Market
@@ -108,7 +113,7 @@ type GetProductsByConditionRow struct {
 }
 
 func (q *Queries) GetProductsByCondition(ctx context.Context, arg GetProductsByConditionParams) ([]GetProductsByConditionRow, error) {
-	rows, err := q.db.Query(ctx, getProductsByCondition, arg.Locale, arg.Market)
+	rows, err := q.db.Query(ctx, getProductsByCondition, arg.Platform, arg.Market)
 	if err != nil {
 		return nil, err
 	}
@@ -118,6 +123,7 @@ func (q *Queries) GetProductsByCondition(ctx context.Context, arg GetProductsByC
 		var i GetProductsByConditionRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Platform,
 			&i.Symbol,
 			&i.Locale,
 			&i.Market,
@@ -136,7 +142,7 @@ func (q *Queries) GetProductsByCondition(ctx context.Context, arg GetProductsByC
 
 type InsertProductsParams struct {
 	ID          string
-	Platform    interface{}
+	Platform    Platform
 	Symbol      string
 	Locale      Locale
 	Market      Market

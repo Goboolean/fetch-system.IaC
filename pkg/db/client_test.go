@@ -2,6 +2,7 @@ package db_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -32,6 +33,10 @@ func SetupPostgreSQL() *db.Client {
 }
 
 func TeardownPostgreSQL(c *db.Client) {
+	if err := c.DeleteAllProducts(context.Background()); err != nil {
+		panic(err)
+	}
+
 	c.Close()
 }
 
@@ -67,16 +72,18 @@ func TestInsertScenario(t *testing.T) {
 
 	var products = []db.InsertProductsParams{
 		{
-			ID: "stock.goboolean.test",
-			Symbol: "goboolean",
-			Locale: "test",
-			Market: "stock",
+			ID: fmt.Sprintf("%s.%s.%s", db.MarketSTOCK, "samsung", db.LocaleKOR),
+			Symbol: "samsung",
+			Locale: db.LocaleKOR,
+			Market: db.MarketSTOCK,
+			Platform: db.PlatformKIS,
 		},
 		{
-			ID: "stock.golution.test",
-			Symbol: "goboolean",
-			Locale: "test",
-			Market: "stock",
+			ID: fmt.Sprintf("%s.%s.%s", db.MarketOPTION, "iphone", db.LocaleKOR),
+			Symbol: "iphone",
+			Locale: db.LocaleKOR,
+			Market: db.MarketOPTION,
+			Platform: db.PlatformBUYCYCLE,
 		},
 	}
 

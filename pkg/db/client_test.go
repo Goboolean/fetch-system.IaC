@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.IaC/internal/db"
+	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 	"github.com/stretchr/testify/assert"
 
 	_ "github.com/Goboolean/common/pkg/env"

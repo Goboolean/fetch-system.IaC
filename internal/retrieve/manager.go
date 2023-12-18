@@ -8,6 +8,7 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/model"
 	"github.com/Goboolean/fetch-system.IaC/internal/polygon"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 
@@ -84,7 +85,7 @@ func (m *Manager) GetAllUSATickerDetails(ctx context.Context) ([]*model.TickerDe
 }
 
 
-func (m *Manager) InitUSAStocks(ctx context.Context) error {
+func (m *Manager) StoreUSAStocks(ctx context.Context) error {
 
 	details, err := m.GetAllUSATickerDetails(ctx)
 	if err != nil {
@@ -97,24 +98,21 @@ func (m *Manager) InitUSAStocks(ctx context.Context) error {
 		dtos[i] = db.InsertProductsParams{
 			ID:     fmt.Sprintf("%s.%s.%s", "stock", detail.Ticker, "usa"),
 			Symbol: detail.Ticker,
-			Locale: "usa",
-			Market: "stock",
+			Locale: db.LocaleUSA,
+			Market: db.MarketSTOCK,
+			Platform: db.PlatformPOLYGON,
 		}
 	}
 
-	count, err := m.db.InsertProducts(ctx, dtos)
-	if err != nil {
+	if _, err = m.db.InsertProducts(ctx, dtos); err != nil {
 		return err
 	}
 
-	if int(count) != len(details) {
-		return fmt.Errorf("failed to insert products")
-	}
 	return nil
 }
 
 
-func (m *Manager) InitKORStocks(ctx context.Context) error {
+func (m *Manager) StoreKORStocks(ctx context.Context) error {
 
 	details, err := m.kis.ReadAllTickerDetalis()
 	if err != nil {
@@ -127,18 +125,23 @@ func (m *Manager) InitKORStocks(ctx context.Context) error {
 		dtos[i] = db.InsertProductsParams{
 			ID:     fmt.Sprintf("%s.%s.%s", "stock", detail.Ticker, "kor"),
 			Symbol: detail.Ticker,
-			Locale: "kor",
-			Market: "stock",
+			Locale: db.LocaleKOR,
+			Market: db.MarketSTOCK,
+			Platform: db.PlatformBUYCYCLE,
+			Name: pgtype.Text{
+				String: detail.Name,
+				Valid: (detail.Name != ""),
+			},
+			Description: pgtype.Text{
+				String: detail.Description,
+				Valid: (detail.Description != ""),
+			},
 		}
 	}
 
-	count, err := m.db.InsertProducts(ctx, dtos)
-	if err != nil {
+	if _, err = m.db.InsertProducts(ctx, dtos); err != nil {
 		return err
 	}
 
-	if int(count) != len(details) {
-		return fmt.Errorf("failed to insert products")
-	}
 	return nil
 }

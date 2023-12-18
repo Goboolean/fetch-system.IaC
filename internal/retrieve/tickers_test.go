@@ -42,7 +42,7 @@ func TestTickers(t *testing.T) {
 	})
 
 	t.Run("GetAllUSATickerDetails", func(t *testing.T) {
-		t.Skip("Skip this test since it generates too much traffic to the API")
+		//t.Skip("Skip this test since it generates too much traffic to the API")
 
 		tickerDetails, err := m.GetAllUSATickerDetails(context.Background())
 		assert.NoError(t, err)

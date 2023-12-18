@@ -19,6 +19,10 @@ import (
 	"os"
 )
 
+import (
+	_ "github.com/Goboolean/common/pkg/env"
+)
+
 // Injectors from wire_setup.go:
 
 func InitializeKafkaConfigurator() (*kafka.Configurator, func(), error) {
@@ -180,8 +184,7 @@ func ProvideKafkaConnectConfig() *resolver.ConfigMap {
 
 func ProvideKISConfig() *resolver.ConfigMap {
 	return &resolver.ConfigMap{
-		"APPKEY": os.Getenv("KIS_APPKEY"),
-		"SECRET": os.Getenv("KIS_SECRET"),
+		"FILEPATH": "./api/csv/data.csv",
 	}
 }
 

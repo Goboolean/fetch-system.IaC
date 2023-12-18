@@ -5,14 +5,148 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Locale string
+
+const (
+	LocaleKOR Locale = "KOR"
+	LocaleUSA Locale = "USA"
+)
+
+func (e *Locale) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Locale(s)
+	case string:
+		*e = Locale(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Locale: %T", src)
+	}
+	return nil
+}
+
+type NullLocale struct {
+	Locale Locale
+	Valid  bool // Valid is true if Locale is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLocale) Scan(value interface{}) error {
+	if value == nil {
+		ns.Locale, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Locale.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLocale) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Locale), nil
+}
+
+type Market string
+
+const (
+	MarketSTOCK  Market = "STOCK"
+	MarketCRYPTO Market = "CRYPTO"
+	MarketFOREX  Market = "FOREX"
+	MarketOPTION Market = "OPTION"
+	MarketFUTURE Market = "FUTURE"
+)
+
+func (e *Market) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Market(s)
+	case string:
+		*e = Market(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Market: %T", src)
+	}
+	return nil
+}
+
+type NullMarket struct {
+	Market Market
+	Valid  bool // Valid is true if Market is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMarket) Scan(value interface{}) error {
+	if value == nil {
+		ns.Market, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Market.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMarket) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Market), nil
+}
+
+type Platform string
+
+const (
+	PlatformPOLYGON  Platform = "POLYGON"
+	PlatformKIS      Platform = "KIS"
+	PlatformBUYCYCLE Platform = "BUYCYCLE"
+)
+
+func (e *Platform) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Platform(s)
+	case string:
+		*e = Platform(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Platform: %T", src)
+	}
+	return nil
+}
+
+type NullPlatform struct {
+	Platform Platform
+	Valid    bool // Valid is true if Platform is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPlatform) Scan(value interface{}) error {
+	if value == nil {
+		ns.Platform, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Platform.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPlatform) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Platform), nil
+}
 
 type ProductMetum struct {
 	ID          string
 	Symbol      string
-	Locale      string
-	Market      string
+	Platform    Platform
+	Locale      Locale
+	Market      Market
 	Name        pgtype.Text
 	Description pgtype.Text
 }

@@ -84,7 +84,7 @@ func (m *Manager) GetAllUSATickerDetails(ctx context.Context) ([]*model.TickerDe
 }
 
 
-func (m *Manager) InitUSAStocks(ctx context.Context) error {
+func (m *Manager) StoreUSAStocks(ctx context.Context) error {
 
 	details, err := m.GetAllUSATickerDetails(ctx)
 	if err != nil {
@@ -97,24 +97,20 @@ func (m *Manager) InitUSAStocks(ctx context.Context) error {
 		dtos[i] = db.InsertProductsParams{
 			ID:     fmt.Sprintf("%s.%s.%s", "stock", detail.Ticker, "usa"),
 			Symbol: detail.Ticker,
-			Locale: "usa",
-			Market: "stock",
+			Locale: db.LocaleUsa,
+			Market: db.MarketStock,
 		}
 	}
 
-	count, err := m.db.InsertProducts(ctx, dtos)
-	if err != nil {
+	if _, err = m.db.InsertProducts(ctx, dtos); err != nil {
 		return err
 	}
 
-	if int(count) != len(details) {
-		return fmt.Errorf("failed to insert products")
-	}
 	return nil
 }
 
 
-func (m *Manager) InitKORStocks(ctx context.Context) error {
+func (m *Manager) StoreKORStocks(ctx context.Context) error {
 
 	details, err := m.kis.ReadAllTickerDetalis()
 	if err != nil {
@@ -132,13 +128,9 @@ func (m *Manager) InitKORStocks(ctx context.Context) error {
 		}
 	}
 
-	count, err := m.db.InsertProducts(ctx, dtos)
-	if err != nil {
+	if _, err = m.db.InsertProducts(ctx, dtos); err != nil {
 		return err
 	}
 
-	if int(count) != len(details) {
-		return fmt.Errorf("failed to insert products")
-	}
 	return nil
 }

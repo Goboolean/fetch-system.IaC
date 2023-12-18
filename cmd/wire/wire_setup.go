@@ -16,6 +16,8 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/retrieve"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 	"github.com/google/wire"
+
+	_ "github.com/Goboolean/common/pkg/env"
 )
 
 
@@ -52,8 +54,7 @@ func ProvideKafkaConnectConfig() *resolver.ConfigMap {
 
 func ProvideKISConfig() *resolver.ConfigMap {
 	return &resolver.ConfigMap{
-		"APPKEY": os.Getenv("KIS_APPKEY"),
-		"SECRET": os.Getenv("KIS_SECRET"),
+		"FILEPATH": "../../api/csv/data.csv",
 	}
 }
 

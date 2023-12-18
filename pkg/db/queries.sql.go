@@ -61,7 +61,8 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]GetAllProductsRow, erro
 }
 
 const getProductById = `-- name: GetProductById :one
-SELECT id, symbol, locale, market, name, description FROM product_meta WHERE id = $1
+SELECT id, symbol, locale, market, name, description FROM product_meta
+WHERE id = $1
 `
 
 type GetProductByIdRow struct {
@@ -85,6 +86,52 @@ func (q *Queries) GetProductById(ctx context.Context, id string) (GetProductById
 		&i.Description,
 	)
 	return i, err
+}
+
+const getProductsByCondition = `-- name: GetProductsByCondition :many
+SELECT id, symbol, locale, market, name, description FROM product_meta
+WHERE locale = $1 AND market = $2
+`
+
+type GetProductsByConditionParams struct {
+	Locale Locale
+	Market Market
+}
+
+type GetProductsByConditionRow struct {
+	ID          string
+	Symbol      string
+	Locale      Locale
+	Market      Market
+	Name        pgtype.Text
+	Description pgtype.Text
+}
+
+func (q *Queries) GetProductsByCondition(ctx context.Context, arg GetProductsByConditionParams) ([]GetProductsByConditionRow, error) {
+	rows, err := q.db.Query(ctx, getProductsByCondition, arg.Locale, arg.Market)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsByConditionRow
+	for rows.Next() {
+		var i GetProductsByConditionRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Symbol,
+			&i.Locale,
+			&i.Market,
+			&i.Name,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 type InsertProductsParams struct {

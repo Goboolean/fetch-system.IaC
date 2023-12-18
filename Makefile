@@ -9,3 +9,6 @@ build-app:
 
 generate-sqlc:
 	sqlc generate -f ./api/sql/sqlc.yml
+
+generate-wire:
+	wire cmd/wire/wire.go

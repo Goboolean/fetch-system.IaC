@@ -1,4 +1,4 @@
-package task
+package prepare
 
 import (
 	"context"
@@ -6,8 +6,6 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 	"github.com/Goboolean/fetch-system.IaC/internal/etcd"
 	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
-	"github.com/Goboolean/fetch-system.IaC/internal/kis"
-	"github.com/Goboolean/fetch-system.IaC/internal/polygon"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 )
 
@@ -15,27 +13,21 @@ import (
 
 
 type Manager struct {
-	polygon *polygon.Client
 	etcd    *etcd.Client
 	db      *db.Client
-	kis     *kis.Reader
 	connect *connect.Client
 	conf    *kafka.Configurator
 }
 
 
 func New(
-	polygon *polygon.Client,
 	etcd    *etcd.Client,
 	db      *db.Client,
-	kis     *kis.Reader,
 	connect *connect.Client,
 	conf    *kafka.Configurator) *Manager {
 		return &Manager{
-			polygon: polygon,
 			etcd:    etcd,
 			db:      db,
-			kis:     kis,
 			connect: connect,
 			conf:    conf,
 		}

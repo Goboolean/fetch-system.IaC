@@ -21,7 +21,13 @@ type Manager struct {
 	kis *kis.Reader
 }
 
-
+func New(polygon *polygon.Client, db *db.Client, kis *kis.Reader) *Manager {
+	return &Manager{
+		polygon: polygon,
+		db: db,
+		kis: kis,
+	}
+}
 
 
 

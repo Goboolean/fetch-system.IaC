@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/model"
 	"golang.org/x/text/encoding/korean"
 	"golang.org/x/text/transform"
@@ -14,15 +15,27 @@ import (
 
 
 
-type Reader struct {}
+type Reader struct {
+	filepath string
+}
+
+func New(c *resolver.ConfigMap) (*Reader, error) {
+	filepath, err := c.GetStringKey("FILEPATH")
+	if err != nil {
+		return nil, err
+	}
+	return &Reader{
+		filepath: filepath,
+	}, nil
+}
 
 
 
-func (r *Reader) ReadAllTickerDetalis(filepath string) ([]*model.TickerDetail, error) {
+func (r *Reader) ReadAllTickerDetalis() ([]*model.TickerDetail, error) {
 
 	var tickerDetails []*model.TickerDetail
 
-	file, err := os.Open(filepath)
+	file, err := os.Open(r.filepath)
 	if err != nil {
 		return nil, err
 	}

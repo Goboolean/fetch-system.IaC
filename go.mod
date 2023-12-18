@@ -6,6 +6,7 @@ require (
 	github.com/Goboolean/common v0.0.0-20231130153141-cb54596b217d
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/google/uuid v1.3.1
+	github.com/google/wire v0.5.0
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/polygon-io/client-go v1.16.1

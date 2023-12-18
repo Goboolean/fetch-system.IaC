@@ -33,6 +33,8 @@ func (r iteratorForInsertProducts) Values() ([]interface{}, error) {
 		r.rows[0].Symbol,
 		r.rows[0].Locale,
 		r.rows[0].Market,
+		r.rows[0].Name,
+		r.rows[0].Description,
 	}, nil
 }
 
@@ -41,5 +43,5 @@ func (r iteratorForInsertProducts) Err() error {
 }
 
 func (q *Queries) InsertProducts(ctx context.Context, arg []InsertProductsParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"product_meta"}, []string{"id", "symbol", "locale", "market"}, &iteratorForInsertProducts{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"product_meta"}, []string{"id", "symbol", "locale", "market", "name", "description"}, &iteratorForInsertProducts{rows: arg})
 }

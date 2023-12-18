@@ -5,14 +5,148 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type Locale string
+
+const (
+	LocaleKor Locale = "kor"
+	LocaleUsa Locale = "usa"
+)
+
+func (e *Locale) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Locale(s)
+	case string:
+		*e = Locale(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Locale: %T", src)
+	}
+	return nil
+}
+
+type NullLocale struct {
+	Locale Locale
+	Valid  bool // Valid is true if Locale is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLocale) Scan(value interface{}) error {
+	if value == nil {
+		ns.Locale, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Locale.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLocale) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Locale), nil
+}
+
+type Market string
+
+const (
+	MarketStock  Market = "stock"
+	MarketCrypto Market = "crypto"
+	MarketForex  Market = "forex"
+	MarketOption Market = "option"
+	MarketFuture Market = "future"
+)
+
+func (e *Market) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Market(s)
+	case string:
+		*e = Market(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Market: %T", src)
+	}
+	return nil
+}
+
+type NullMarket struct {
+	Market Market
+	Valid  bool // Valid is true if Market is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMarket) Scan(value interface{}) error {
+	if value == nil {
+		ns.Market, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Market.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMarket) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Market), nil
+}
+
+type Playform string
+
+const (
+	PlayformPolygon  Playform = "polygon"
+	PlayformKis      Playform = "kis"
+	PlayformBuycycle Playform = "buycycle"
+)
+
+func (e *Playform) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = Playform(s)
+	case string:
+		*e = Playform(s)
+	default:
+		return fmt.Errorf("unsupported scan type for Playform: %T", src)
+	}
+	return nil
+}
+
+type NullPlayform struct {
+	Playform Playform
+	Valid    bool // Valid is true if Playform is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPlayform) Scan(value interface{}) error {
+	if value == nil {
+		ns.Playform, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.Playform.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPlayform) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.Playform), nil
+}
 
 type ProductMetum struct {
 	ID          string
 	Symbol      string
-	Locale      string
-	Market      string
+	Platform    Playform
+	Locale      Locale
+	Market      Market
 	Name        pgtype.Text
 	Description pgtype.Text
 }

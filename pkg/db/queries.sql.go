@@ -7,6 +7,8 @@ package db
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteAllProducts = `-- name: DeleteAllProducts :exec
@@ -19,14 +21,16 @@ func (q *Queries) DeleteAllProducts(ctx context.Context) error {
 }
 
 const getAllProducts = `-- name: GetAllProducts :many
-SELECT id, symbol, locale, market FROM product_meta
+SELECT id, symbol, locale, market, name, description FROM product_meta
 `
 
 type GetAllProductsRow struct {
-	ID     string
-	Symbol string
-	Locale string
-	Market string
+	ID          string
+	Symbol      string
+	Locale      Locale
+	Market      Market
+	Name        pgtype.Text
+	Description pgtype.Text
 }
 
 func (q *Queries) GetAllProducts(ctx context.Context) ([]GetAllProductsRow, error) {
@@ -43,6 +47,8 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]GetAllProductsRow, erro
 			&i.Symbol,
 			&i.Locale,
 			&i.Market,
+			&i.Name,
+			&i.Description,
 		); err != nil {
 			return nil, err
 		}
@@ -54,9 +60,38 @@ func (q *Queries) GetAllProducts(ctx context.Context) ([]GetAllProductsRow, erro
 	return items, nil
 }
 
+const getProductById = `-- name: GetProductById :one
+SELECT id, symbol, locale, market, name, description FROM product_meta WHERE id = $1
+`
+
+type GetProductByIdRow struct {
+	ID          string
+	Symbol      string
+	Locale      Locale
+	Market      Market
+	Name        pgtype.Text
+	Description pgtype.Text
+}
+
+func (q *Queries) GetProductById(ctx context.Context, id string) (GetProductByIdRow, error) {
+	row := q.db.QueryRow(ctx, getProductById, id)
+	var i GetProductByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Symbol,
+		&i.Locale,
+		&i.Market,
+		&i.Name,
+		&i.Description,
+	)
+	return i, err
+}
+
 type InsertProductsParams struct {
-	ID     string
-	Symbol string
-	Locale string
-	Market string
+	ID          string
+	Symbol      string
+	Locale      Locale
+	Market      Market
+	Name        pgtype.Text
+	Description pgtype.Text
 }

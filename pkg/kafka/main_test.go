@@ -1,4 +1,4 @@
-package kafka_test
+package kafka
 
 import (
 	"os"
@@ -8,19 +8,19 @@ import (
 	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/common/pkg/resolver"
 	_ "github.com/Goboolean/common/pkg/env"
-	"github.com/Goboolean/fetch-system.IaC/internal/kafkaadmin"
+	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
 	log "github.com/sirupsen/logrus"
 
 )
 
 var mutex = &sync.Mutex{}
 
-var conf *kafkaadmin.Configurator
+var conf *kafka.Configurator
 
 
 
-func SetupConfigurator() *kafkaadmin.Configurator {
-	c, err := kafkaadmin.New(&resolver.ConfigMap{
+func SetupConfigurator() *kafka.Configurator {
+	c, err := kafka.New(&resolver.ConfigMap{
 		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
 	})
 	if err != nil {
@@ -29,10 +29,48 @@ func SetupConfigurator() *kafkaadmin.Configurator {
 	return c
 }
 
-func TeardownConfigurator(c *kafkaadmin.Configurator) {
+func TeardownConfigurator(c *kafka.Configurator) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	c.Close()
+}
+
+
+
+func SetupConsumer() *Consumer {
+
+	c, err := NewConsumer(&resolver.ConfigMap{
+		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+		"GROUP_ID":       "TEST_GROUP",
+	})
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+func TeardownConsumer(c *Consumer) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	c.Close()
+}
+
+
+
+func SetupProducer() *kafka.Producer {
+	p, err := kafka.NewProducer(&resolver.ConfigMap{
+		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+	})
+	if err != nil {
+		panic(err)
+	}
+	return p
+}
+
+func TeardownProducer(p *kafka.Producer) {
+	mutex.Lock()
+	defer mutex.Unlock()
+	p.Close()
 }
 
 

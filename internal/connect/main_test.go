@@ -8,7 +8,7 @@ import (
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
-	kafka_client "github.com/Goboolean/fetch-system.IaC/pkg/kafka"
+	_kafka "github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/Goboolean/fetch-system.IaC/pkg/mongo"
 
 	_ "github.com/Goboolean/common/pkg/env"
@@ -54,7 +54,7 @@ func TeardownProducer(p *kafka.Producer) {
 
 
 
-func TeardownConsumer(c *kafka_client.Consumer) {
+func TeardownConsumer(c *_kafka.Consumer) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	c.Close()

@@ -9,6 +9,8 @@ services:
       - mongodb-secondary
       - mongodb-arbiter
       - kafka-connect
+      - postgresql
+      - etcd
     environment:
       - MONGODB_CONNECTION_URI=mongodb://goboolean:password@mongodb-primary:27017/goboolean-stock
       - MONGODB_DATABASE=goboolean-stock
@@ -19,6 +21,7 @@ services:
       - POSTGRES_USER=goboolean
       - POSTGRES_PASSWORD=password
       - POSTGRES_DATABASE=goboolean
+      - ETCD_HOST=etcd:2379
     env_file:
       - .env
 
@@ -128,3 +131,11 @@ services:
       - POSTGRESQL_DATABASE=goboolean
     volumes:
       - ../api/sql/schema.sql:/docker-entrypoint-initdb.d/init.sql
+
+  etcd:
+    image: bitnami/etcd:latest
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+    ports:
+      - "2379"
+      - "2380"

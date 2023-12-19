@@ -58,6 +58,7 @@ func (p *Producer) Flush(ctx context.Context) (int, error) {
 
 	go func() {
 		for range p.producer.Events() {
+			
 		}
 	}()
 

@@ -2,6 +2,7 @@ package polygon
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/Goboolean/common/pkg/resolver"
@@ -71,7 +72,10 @@ func (c *Client) GetTickerDetail(ctx context.Context, ticker string) (*model.Tic
 }
 
 
-var defaultSemaphoreSize = 100
+const (
+	defaultSemaphoreSize = 100
+	errorThreshold = 50
+)
 
 func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]*model.TickerDetailResult, error) {
 
@@ -80,8 +84,14 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 	semaphore := make(chan struct{}, defaultSemaphoreSize)
 	wg := sync.WaitGroup{}
 
+	var errorCount int = 0
+
 	for i, ticker := range tickers {
 		semaphore <- struct{}{}
+		if errorCount >= errorThreshold {
+			break
+		}
+
 		wg.Add(1)
 
 		go func(i int, ticker string) {
@@ -95,9 +105,14 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 			})
 			if err != nil {
 				details[i] = &model.TickerDetailResult{
-					Message: resp.ErrorMessage,
+					TickerDetail: model.TickerDetail{
+						Ticker: ticker,
+					},
+					Message: strings.Split(err.Error(), ":")[0],
 					Status: resp.Status,
 				}
+
+				errorCount++
 				return
 			}
 

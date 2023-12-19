@@ -79,11 +79,11 @@ func (m *Manager) PrepareTopic(ctx context.Context, topic string) error {
 	topicAggs := []string{topic1s, topic5s, topic1m, topic5m}
 
 	if err := m.conf.CreateTopics(ctx, topicAll...); err != nil {
-		return err		
+		return err
 	}
 
 	for _, topic := range topicAggs {
-		if err := m.conf.CreateTopic(ctx, topic); err != nil {
+		if err := m.connect.CreateConnector(ctx, topic); err != nil {
 			return err
 		}
 	}

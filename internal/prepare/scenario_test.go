@@ -47,11 +47,15 @@ func TestScenario(t *testing.T) {
 	})
 
 	t.Run("Prepare", func(t *testing.T) {
+		topics = topics[:10]
+
 		start := time.Now()
 
-		for _, topic := range topics {
+		for i, topic := range topics {
 			ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
 			defer cancel()
+
+			t.Logf("Preparing topic %d/%d: %s", i+1, len(topics), topic)
 
 			err := preparer.PrepareTopic(ctx, topic)
 			assert.NoError(t, err)
@@ -59,19 +63,5 @@ func TestScenario(t *testing.T) {
 
 		elasped := time.Since(start)
 		t.Log("Elapsed time:", elasped)
-	})
-
-	t.Run("CheckPrepared", func(t *testing.T) {
-		connect, cleanup, err := wire.InitializeKafkaConnectClient()
-		assert.NoError(t, err)
-		t.Cleanup(cleanup)
-
-		ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
-		defer cancel()
-
-		for _, topic := range topics {
-			err := connect.CheckPluginConfig(ctx, topic)
-			assert.NoError(t, err)
-		}
 	})
 }

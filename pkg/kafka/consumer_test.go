@@ -1,47 +1,22 @@
-package kafka_test
+package kafka
 
 import (
 	"context"
-	"os"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/pkg/model"
-	"github.com/Goboolean/fetch-system.IaC/pkg/kafka"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 )
 
-func SetupConsumer() *kafka.Consumer {
 
-	c, err := kafka.NewConsumer(&resolver.ConfigMap{
-		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
-		"GROUP_ID":       "TEST_GROUP",
-	})
-	if err != nil {
-		panic(err)
-	}
-	return c
-}
-
-func TeardownConsumer(c *kafka.Consumer) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	c.Close()
-}
 
 func TestConsumer(t *testing.T) {
 
 	c := SetupConsumer()
-	a := SetupConfigurator()
-
-	t.Cleanup(func() {
-		err := a.DeleteAllTopics(context.Background())
-		assert.NoError(t, err)
-
-		TeardownConsumer(c)
-		TeardownConfigurator(a)
-	})
+	defer TeardownConsumer(c)
 
 	t.Run("Ping", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -61,14 +36,12 @@ func TestConsumeAggs(t *testing.T) {
 	const productType = "1s"
 
 	t.Cleanup(func() {
-		err := conf.DeleteAllTopics(context.Background())
-		assert.NoError(t, err)
-
 		TeardownConsumer(c)
 		TeardownProducer(p)
 	})
 
-	const count = 3
+	const count = 10
+	var received = 0
 
 	var ch <-chan *model.Aggregate
 
@@ -84,9 +57,13 @@ func TestConsumeAggs(t *testing.T) {
 		defer cancel()
 
 		for i := 0; i < count; i++ {
-			err := p.ProduceAggs(productId, productType, &model.Aggregate{
+			topic := fmt.Sprintf("%s.%s", productId, productType)
+			payload, err := proto.Marshal(&model.Aggregate{
 				Timestamp: time.Now().UnixNano(),
 			})
+			assert.NoError(t, err)
+
+			err = p.Produce(topic, payload)
 			assert.NoError(t, err)
 		}
 
@@ -95,8 +72,20 @@ func TestConsumeAggs(t *testing.T) {
 	})
 
 	t.Run("Consume", func(t *testing.T) {
-		time.Sleep(time.Second * 5)
-		assert.Equal(t, count, len(ch))
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		for i := 0; i < count; i++ {
+			select {
+			case <-ctx.Done():
+				assert.Fail(t, "timeout")
+				return
+			case <-ch:
+				received++
+			}
+		}
+
+		assert.Equal(t, count, received)
 	})
 }
 
@@ -106,17 +95,15 @@ func TestConsumeTrade(t *testing.T) {
 	p := SetupProducer()
 
 	const productId = "test.consumetrade.io"
-	const productType = "1m"
+	const productType = "t"
 
 	t.Cleanup(func() {
-		err := conf.DeleteAllTopics(context.Background())
-		assert.NoError(t, err)
-
 		TeardownConsumer(c)
 		TeardownProducer(p)
 	})
 
-	const count = 3
+	const count = 10
+	var received = 0
 
 	var ch <-chan *model.Trade
 
@@ -132,9 +119,13 @@ func TestConsumeTrade(t *testing.T) {
 		defer cancel()
 
 		for i := 0; i < count; i++ {
-			err := p.ProduceTrade(productId, &model.Trade{
+			topic := fmt.Sprintf("%s.%s", productId, productType)
+			payload, err := proto.Marshal(&model.Trade{
 				Timestamp: time.Now().UnixNano(),
 			})
+			assert.NoError(t, err)
+
+			err = p.Produce(topic, payload)
 			assert.NoError(t, err)
 		}
 
@@ -143,7 +134,19 @@ func TestConsumeTrade(t *testing.T) {
 	})
 
 	t.Run("Consume", func(t *testing.T) {
-		time.Sleep(time.Second * 5)
-		assert.Equal(t, count, len(ch))
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		for i := 0; i < count; i++ {
+			select {
+			case <-ctx.Done():
+				assert.Fail(t, "timeout")
+				return
+			case <-ch:
+				received++
+			}
+		}
+
+		assert.Equal(t, count, received)
 	})
 }

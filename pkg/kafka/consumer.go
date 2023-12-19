@@ -160,7 +160,7 @@ func (c *Consumer) Ping(ctx context.Context) error {
 	// It will return error if there is no response within deadline
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return ErrDeadlineSettingRequired
+		deadline = time.Now().Add(1 << 32)
 	}
 
 	remaining := time.Until(deadline)

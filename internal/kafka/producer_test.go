@@ -3,30 +3,13 @@ package kafka_test
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
 	"github.com/stretchr/testify/assert"
 )
 
-func SetupProducer() *kafka.Producer {
-	p, err := kafka.NewProducer(&resolver.ConfigMap{
-		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
-	})
-	if err != nil {
-		panic(err)
-	}
-	return p
-}
 
-func TeardownProducer(p *kafka.Producer) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	p.Close()
-}
 
 func Test_Producer(t *testing.T) {
 
@@ -34,10 +17,10 @@ func Test_Producer(t *testing.T) {
 	conf := SetupConfigurator()
 
 	t.Cleanup(func() {
+		TeardownProducer(p)
+
 		err := conf.DeleteAllTopics(context.Background())
 		assert.NoError(t, err)
-
-		TeardownProducer(p)
 	})
 
 	const topic = "test.producer.abc"

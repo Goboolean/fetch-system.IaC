@@ -39,6 +39,10 @@ func NewProducer(c *resolver.ConfigMap) (*Producer, error) {
 		cancel:   cancel,
 	}
 
+	go func() {
+		for range instance.producer.Events() {}
+	}()
+
 	return instance, nil
 }
 
@@ -55,12 +59,6 @@ func (p *Producer) Produce(topic string, msg []byte) error {
 }
 
 func (p *Producer) Flush(ctx context.Context) (int, error) {
-
-	go func() {
-		for range p.producer.Events() {
-			
-		}
-	}()
 
 	deadline, ok := ctx.Deadline()
 	if !ok {

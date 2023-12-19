@@ -37,10 +37,6 @@ func TestConsumeAggs(t *testing.T) {
 
 	t.Cleanup(func() {
 		TeardownConsumer(c)
-
-		err := conf.DeleteAllTopics(context.Background())
-		assert.NoError(t, err)
-
 		TeardownProducer(p)
 	})
 
@@ -103,10 +99,6 @@ func TestConsumeTrade(t *testing.T) {
 
 	t.Cleanup(func() {
 		TeardownConsumer(c)
-
-		err := conf.DeleteAllTopics(context.Background())
-		assert.NoError(t, err)
-
 		TeardownProducer(p)
 	})
 

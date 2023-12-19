@@ -2,32 +2,13 @@ package kafka_test
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
-	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
 	"github.com/stretchr/testify/assert"
 )
 
-func SetupConfigurator() *kafka.Configurator {
 
-	conf, err := kafka.New(&resolver.ConfigMap{
-		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return conf
-}
-
-func TeardownConfigurator(conf *kafka.Configurator) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	conf.Close()
-}
 
 func Test_Configurator(t *testing.T) {
 
@@ -45,7 +26,7 @@ func Test_Configurator(t *testing.T) {
 
 func Test_CreateDeleteTopic(t *testing.T) {
 
-	t.Skip("Skip this test since unhandlable error occurs on kafka admin client.")
+	//t.Skip("Skip this test since unhandlable error occurs on kafka admin client.")
 
 	const topic = "test.createdeletetopic.io.1s"
 
@@ -99,7 +80,7 @@ func Test_CreateDeleteTopic(t *testing.T) {
 
 func Test_GetTopicList(t *testing.T) {
 
-	t.Skip("Skip this test since unhandlable error occurs on kafka admin client.")
+	//t.Skip("Skip this test since unhandlable error occurs on kafka admin client.")
 
 	conf := SetupConfigurator()
 	defer TeardownConfigurator(conf)

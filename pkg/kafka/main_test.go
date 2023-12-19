@@ -1,21 +1,18 @@
 package kafka
 
 import (
+	"context"
 	"os"
 	"sync"
 	"testing"
 
 	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/common/pkg/resolver"
-	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
-	log "github.com/sirupsen/logrus"
-
 )
 
 var mutex = &sync.Mutex{}
 
-var conf *kafka.Configurator
 
 
 
@@ -75,14 +72,19 @@ func TeardownProducer(p *kafka.Producer) {
 
 
 
-func TestMain(m *testing.M) {
-	conf = SetupConfigurator()
-	log.SetFormatter(&log.TextFormatter{
-		DisableTimestamp: true,
-	})
-	log.SetLevel(log.TraceLevel)
+func TeardownEnvironment() {
+	c := SetupConfigurator()
+	defer TeardownConfigurator(c)
 
+	if err := c.DeleteAllTopics(context.Background()); err != nil {
+		panic(err)
+	}
+
+}
+
+
+
+func TestMain(m *testing.M) {
 	code := m.Run()
 	os.Exit(code)
-	TeardownConfigurator(conf)
 }

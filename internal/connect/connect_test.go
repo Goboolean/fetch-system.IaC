@@ -129,9 +129,9 @@ func TestScenario(t *testing.T) {
 	})
 
 	t.Run("QueryJsonData", func(t *testing.T) {
-		time.Sleep(1 * time.Second)
+		time.Sleep(3 * time.Second)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
 
 		data, err := m.FetchAllStockBatch(ctx, productId, timeFrame)

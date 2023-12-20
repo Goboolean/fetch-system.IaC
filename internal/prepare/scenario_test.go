@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/Goboolean/fetch-system.IaC/cmd/wire"
+	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 	"github.com/Goboolean/fetch-system.IaC/internal/etcd"
+	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
 	"github.com/Goboolean/fetch-system.IaC/internal/prepare"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +19,14 @@ func TestScenario(t *testing.T) {
 
 	var preparer *prepare.Manager
 	var etcd *etcd.Client
+	var connect *connect.Client
+	var conf *kafka.Configurator
 	var topics []string
+
+	const (
+		connectorName = "preparer.connector"
+		connectorTasks = 10
+	)
 
 	t.Run("Setup prerarer", func(tt *testing.T) {
 		var err error
@@ -30,10 +39,36 @@ func TestScenario(t *testing.T) {
 		etcd, cleanup, err = wire.InitializeETCDClient()
 		assert.NoError(tt, err)
 		t.Cleanup(cleanup)
+
+		connect, cleanup, err = wire.InitializeKafkaConnectClient()
+		assert.NoError(tt, err)
+		t.Cleanup(cleanup)
+
+		conf, cleanup, err = wire.InitializeKafkaConfigurator()
+		assert.NoError(tt, err)
+		t.Cleanup(cleanup)
+	})
+
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+		defer cancel()
+
+		err := connect.DeleteAllConnectors(ctx)
+		assert.NoError(t, err)
+
+		connectors, err := connect.GetConnectors(ctx)
+		assert.NoError(t, err)
+		assert.Empty(t, connectors)
+
+		err = etcd.DeleteAllProducts(ctx)
+		assert.NoError(t, err)
+
+		err = conf.DeleteAllTopics(ctx)
+		assert.NoError(t, err)
 	})
 
 	t.Run("SyncETCDToDB", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 		defer cancel()
 
 		var err error
@@ -47,19 +82,15 @@ func TestScenario(t *testing.T) {
 	})
 
 	t.Run("Prepare", func(t *testing.T) {
-		topics = topics[:10]
+		topics = topics[:300]
 
 		start := time.Now()
 
-		for i, topic := range topics {
-			ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
-			defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 100 * time.Second)
+		defer cancel()
 
-			t.Logf("Preparing topic %d/%d: %s", i+1, len(topics), topic)
-
-			err := preparer.PrepareTopic(ctx, topic)
-			assert.NoError(t, err)
-		}
+		err := preparer.PrepareTopics(ctx, connectorName, connectorTasks, topics)
+		assert.NoError(t, err)
 
 		elasped := time.Since(start)
 		t.Log("Elapsed time:", elasped)

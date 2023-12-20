@@ -66,27 +66,43 @@ func (m *Manager) SyncETCDToDB(ctx context.Context) ([]string, error) {
 }
 
 
+func (m *Manager) PrepareTopics(ctx context.Context, connectorName string, connectorTasks int, topics []string) error {
 
-func (m *Manager) PrepareTopic(ctx context.Context, topic string) error {
 
-	topicTic := fmt.Sprintf("%s.t", topic)
-	topic1s := fmt.Sprintf("%s.1s", topic)
-	topic5s := fmt.Sprintf("%s.5s", topic)
-	topic1m := fmt.Sprintf("%s.1m", topic)
-	topic5m := fmt.Sprintf("%s.5m", topic)
+	topicAll := make([]string, 0)
+	topicAggs := make([]string, 0)
 
-	topicAll := []string{topicTic, topic1s, topic5s, topic1m, topic5m}
-	topicAggs := []string{topic1s, topic5s, topic1m, topic5m}
+	for _, topic := range topics {
+		topicTic := fmt.Sprintf("%s.t", topic)
+		topic1s := fmt.Sprintf("%s.1s", topic)
+		topic5s := fmt.Sprintf("%s.5s", topic)
+		topic1m := fmt.Sprintf("%s.1m", topic)
+		topic5m := fmt.Sprintf("%s.5m", topic)
+
+		topicAll = append(topicAll, topicTic, topic1s, topic5s, topic1m, topic5m)
+		topicAggs = append(topicAggs, topic1s, topic5s, topic1m, topic5m)
+	}
 
 	if err := m.conf.CreateTopics(ctx, topicAll...); err != nil {
 		return err
 	}
 
-	for _, topic := range topicAggs {
-		if err := m.connect.CreateConnector(ctx, topic); err != nil {
-			return err
+	configs := make([]connect.ConnectorTopicConfig, len(topicAggs))
+	for i, topic := range topicAggs {
+		configs[i] = connect.ConnectorTopicConfig{
+			Topic:            topic,
+			Collection:       topic,
+			RotateIntervalMs: 100000,
 		}
 	}
 
+	if err := m.connect.CreateBulkTopicConnector(ctx, connectorName, connectorTasks, configs); err != nil {
+		return err
+	}
+
+	_, err := m.connect.CheckTasksStatus(ctx, connectorName)
+	if err != nil {
+		return err
+	}
 	return nil
 }

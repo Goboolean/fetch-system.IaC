@@ -89,7 +89,7 @@ func TestScenario(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 100 * time.Second)
 		defer cancel()
 
-		err := preparer.PrepareTopics(ctx, connectorName, connectorTasks, topics)
+		err := preparer.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics)
 		assert.NoError(t, err)
 
 		elasped := time.Since(start)

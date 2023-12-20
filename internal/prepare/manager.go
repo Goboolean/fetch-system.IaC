@@ -66,8 +66,29 @@ func (m *Manager) SyncETCDToDB(ctx context.Context) ([]string, error) {
 }
 
 
-func (m *Manager) PrepareTopics(ctx context.Context, connectorName string, connectorTasks int, topics []string) error {
+const batchSize = 500
 
+func (m *Manager) PrepareTopics(ctx context.Context, topics []string) error {
+	
+	for i := 0; i < len(topics); i += batchSize {
+		end := i + batchSize
+		if end > len(topics) {
+			end = len(topics)
+		}
+
+		var connectorName = fmt.Sprintf("%s.%d", "preparer.connector", i)
+		var connectorTasks = 10
+
+		if err := m.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics[i:end]); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+
+func (m *Manager) PrepareTopicsBatch(ctx context.Context, connectorName string, connectorTasks int, topics []string) error {
 
 	topicAll := make([]string, 0)
 	topicAggs := make([]string, 0)

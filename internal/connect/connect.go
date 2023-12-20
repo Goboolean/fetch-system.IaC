@@ -342,13 +342,20 @@ func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 
 	for _, task := range taskList {
 
+		var queryErr error
+		var retry = 0
+
 		for {
 			if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
-					return err
+					return errors.Join(err, fmt.Errorf("retry %d times", retry), queryErr)
 				} else {
+					queryErr = err
+					retry++
 					time.Sleep(1 * time.Second)
 				}
+			} else {
+				break
 			}
 		}
 	}
@@ -382,6 +389,22 @@ func (c *Client) DeleteConnector(ctx context.Context, topic string) error {
 		return fmt.Errorf(string(body))
 	}
 
+	return nil
+}
+
+
+func (c *Client) DeleteAllConnectors(ctx context.Context) error {
+
+	connectors, err := c.GetConnectors(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, connector := range connectors {
+		if err := c.DeleteConnector(ctx, connector); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

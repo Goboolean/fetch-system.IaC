@@ -115,6 +115,7 @@ func TestConnectorScenario(t *testing.T) {
 		productId = "test.sibujo.connect"
 		timeFrame = "1s"
 		topic = fmt.Sprintf("%s.%s", productId, timeFrame)
+		times = 10
 	)
 	
 	c := SetupConnect()
@@ -123,9 +124,10 @@ func TestConnectorScenario(t *testing.T) {
 	m := SetupMongoClient()
 
 	t.Cleanup(func() {
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
-		err := c.DeleteConnector(ctx, topic)
+		err := c.DeleteAllConnectors(ctx)
 		assert.NoError(t, err)
 
 		err = a.DeleteAllTopics(ctx)
@@ -137,7 +139,8 @@ func TestConnectorScenario(t *testing.T) {
 	})
 
 	t.Run("CreateConnector", func(t *testing.T) {
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
 		err := c.CreateSingleTopicConnector(ctx, topic)
 		assert.NoError(t, err)
@@ -147,18 +150,20 @@ func TestConnectorScenario(t *testing.T) {
 	})
 
 	t.Run("ProduceJsonData", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
-		ctx := context.Background()
+		for i := 0; i < times; i++ {
+			var aggregate = connect.Aggregate{
+				Timestamp: time.Now().UnixNano() / int64(time.Millisecond),
+			}
 
-		var aggregate = connect.Aggregate{
-			Timestamp: time.Now().UnixNano() / int64(time.Millisecond),
+			payload, err := json.Marshal(aggregate)
+			assert.NoError(t, err)
+
+			err = p.Produce(topic, payload)
+			assert.NoError(t, err)
 		}
-
-		payload, err := json.Marshal(aggregate)
-		assert.NoError(t, err)
-
-		err = p.Produce(topic, payload)
-		assert.NoError(t, err)
 
 		number, err := p.Flush(ctx)
 		assert.NoError(t, err)
@@ -168,11 +173,67 @@ func TestConnectorScenario(t *testing.T) {
 	t.Run("QueryJsonData", func(t *testing.T) {
 		time.Sleep(3 * time.Second)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		data, err := m.FetchAllStockBatch(ctx, productId, timeFrame)
 		assert.NoError(t, err)
-		assert.NotEmpty(t, data)
+		assert.GreaterOrEqual(t, len(data), times)
+	})
+}
+
+
+
+func TestBulkTopicConnectorLoad(t *testing.T) {
+
+	c := SetupConnect()
+	defer TeardownConnect(c)
+
+	const n = 100
+	const name = "test.bulktopicload.connect"
+
+	var topics = make([]string, n)
+	for i := 0; i < n; i++ {
+		topics[i] = util.RandomString(10)
+	}
+
+	t.Run("CheckConnectorNotExists", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		list, err := c.GetConnectors(ctx)
+		assert.NoError(t, err)
+		assert.NotContains(t, list, name)
+	})
+	
+	t.Run("CreateConnector", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		err := c.CreateBulkTopicConnector(ctx, name, topics)
+		assert.NoError(t, err)
+
+		list, err := c.GetConnectors(ctx)
+		assert.NoError(t, err)
+		assert.Contains(t, list, name)
+
+		err = c.CheckTasksStatus(ctx, name)
+		assert.NoError(t, err)
+	})
+
+	t.Run("DeleteConnector", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		err := c.DeleteConnector(ctx, name)
+		assert.NoError(t, err)
+
+		list, err := c.GetConnectors(ctx)
+		assert.NoError(t, err)
+		assert.NotContains(t, list, name)
+	})
+
+	t.Run("Sleep to check cpu usage when connector is idle", func(t *testing.T) {
+		time.Sleep(10 * time.Second)
 	})
 }

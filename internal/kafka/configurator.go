@@ -97,6 +97,33 @@ func (c *Configurator) CreateTopic(ctx context.Context, topic string) error {
 	return nil
 }
 
+func (c *Configurator) CreateTopics(ctx context.Context, topics ...string) error {
+
+	topicInfos := make([]kafka.TopicSpecification, len(topics))
+	for i, topic := range topics {
+		topicInfos[i] = kafka.TopicSpecification{
+			Topic:             topic,
+			NumPartitions:     1,
+			ReplicationFactor: 1,
+		}
+	}
+
+	result, err := c.client.CreateTopics(ctx, topicInfos)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range result {
+		if err := r.Error; err.Code() != kafka.ErrNoError {
+			return fmt.Errorf(err.String())
+		}
+	}
+
+	return nil
+}
+
+
+
 func (c *Configurator) DeleteTopic(ctx context.Context, topic string) error {
 
 	result, err := c.client.DeleteTopics(ctx, []string{topic})
@@ -154,6 +181,7 @@ func (c *Configurator) TopicExists(ctx context.Context, topic string) (bool, err
 	}
 
 	detail, exists := metadata.Topics[topic]
+	detail.Error.Code()
 	return exists && detail.Topic != "", nil
 }
 

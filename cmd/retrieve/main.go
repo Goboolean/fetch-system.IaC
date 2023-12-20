@@ -17,17 +17,17 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	manager, cleanup, err := wire.InitializeRetriever()
+	retriever, cleanup, err := wire.InitializeRetriever()
 	if err != nil {
 		panic(err)
 	}
 	defer cleanup()
 
-	if err := manager.StoreKORStocks(ctx); err != nil {
+	if err := retriever.StoreKORStocks(ctx); err != nil {
 		panic(err)
 	}
 
-	if err := manager.StoreUSAStocks(ctx); err != nil {
+	if err := retriever.StoreUSAStocks(ctx); err != nil {
 		panic(err)
 	}
 }

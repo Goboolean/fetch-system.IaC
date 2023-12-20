@@ -54,6 +54,18 @@ func TeardownProducer(p *kafka.Producer) {
 
 
 
+func SetupConsumer() *_kafka.Consumer {
+
+	c, err := _kafka.NewConsumer(&resolver.ConfigMap{
+		"BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+		"GROUP_ID":       "TEST_GROUP",
+	})
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
 func TeardownConsumer(c *_kafka.Consumer) {
 	mutex.Lock()
 	defer mutex.Unlock()

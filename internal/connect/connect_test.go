@@ -10,6 +10,8 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 	"github.com/Goboolean/fetch-system.IaC/internal/util"
 	"github.com/stretchr/testify/assert"
+
+	_ "github.com/Goboolean/common/pkg/env"
 )
 
 
@@ -170,6 +172,19 @@ func TestConnectorScenario(t *testing.T) {
 		TeardownAdminClient(a)
 	})
 
+	t.Run("CreateConnector", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		err := c.CreateSingleTopicConnector(ctx, name, tasks, config)
+		assert.NoError(t, err)
+
+		count, err := c.CheckTasksStatus(ctx, name)
+		assert.NoError(t, err)
+		assert.NotZero(t, count)
+		t.Log("Number of tasks", count)
+	})
+
 	t.Run("ProduceJsonData", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
@@ -191,28 +206,22 @@ func TestConnectorScenario(t *testing.T) {
 		assert.Equal(t, 0, number)
 	})
 
-	t.Run("CreateConnector", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		err := c.CreateSingleTopicConnector(ctx, name, tasks, config)
-		assert.NoError(t, err)
-
-		count, err := c.CheckTasksStatus(ctx, name)
-		assert.NoError(t, err)
-		assert.NotZero(t, count)
-		t.Log("Number of tasks", count)
-	})
-
 	t.Run("QueryJsonData", func(t *testing.T) {
-		time.Sleep(3 * time.Second)
-
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
-		data, err := m.FetchAllStockBatch(ctx, productId, timeFrame)
-		assert.NoError(t, err)
-		assert.GreaterOrEqual(t, len(data), times)
+		for {
+			data, err := m.FetchAllStockBatch(ctx, productId, timeFrame)
+			assert.NoError(t, err)
+			if err != nil {
+				return
+			}
+
+			if len(data) == times {
+				assert.Equal(t, times, len(data))
+				break
+			}
+		}
 	})
 }
 
@@ -224,6 +233,9 @@ func TestBulkTopicConnectorLoad(t *testing.T) {
 
 	c := SetupConnect()
 	defer TeardownConnect(c)
+
+	consumer := SetupConsumer()
+	defer TeardownConsumer(consumer)
 
 	const (
 		n = 50
@@ -292,3 +304,6 @@ func TestBulkTopicConnectorLoad(t *testing.T) {
 		assert.NotContains(t, list, name)
 	})
 }
+
+
+

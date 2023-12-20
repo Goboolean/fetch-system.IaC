@@ -7,6 +7,7 @@ const (
 	MongoSourceConnector= "com.mongodb.kafka.connect.MongoSourceConnector"
 	StringConverter		= "org.apache.kafka.connect.storage.StringConverter"
 	JsonConverter		= "org.apache.kafka.connect.json.JsonConverter"
+	DocumentIdStrategy = "com.mongodb.kafka.connect.sink.processor.id.strategy.ProvidedInKeyStrategy"
 )
 
 
@@ -20,6 +21,8 @@ type ConnectorConfig struct {
 	ValueConverter              string `json:"value.converter"`
 	ValueConverterSchemasEnable string `json:"value.converter.schemas.enable"`
 	RotateIntervalMs            string `json:"rotate.interval.ms"`
+	//DocumentIdStrategy          string `json:"document.id.strategy"`
+	MaxTasks                    string `json:"tasks.max"`
 }
 
 type ConnectorPlugin struct {
@@ -61,9 +64,17 @@ type CreateConnectorRequest struct {
 }
 
 type CreateBulkConnectorRequest struct {
-	Name   string                 `json:"name"`
+	Name   string            `json:"name"`
 	Config map[string]string `json:"config"`
 }
+
+type ConnectorTopicConfig struct {
+	Topic            string
+	Collection       string
+	RotateIntervalMs int
+}
+
+
 
 
 type Trade struct {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -135,20 +136,22 @@ func (c *Client) CheckCompatibility(ctx context.Context) error {
 
 
 
-func (c *Client) CreateSingleTopicConnector(ctx context.Context, topic string) error {
+func (c *Client) CreateSingleTopicConnector(ctx context.Context, name string, tasks int, conf ConnectorTopicConfig) error {
 
 	jsonData, err := json.Marshal(CreateConnectorRequest{
-		Name: topic,
+		Name: name,
 		Config: ConnectorConfig{
 			ConnecctorClass: MongoSinkConnector,
-			Topics:          topic,
+			Topics:          conf.Topic,
 			ConnectionUri:   c.mongouri,
 			Database:        c.database,
-			Collection:      topic,
+			Collection:      conf.Collection,
 			KeyConverter:    StringConverter,
 			ValueConverter:  JsonConverter,
 			ValueConverterSchemasEnable: "false",
-			RotateIntervalMs: "1000",
+			RotateIntervalMs: strconv.Itoa(conf.RotateIntervalMs),
+			//DocumentIdStrategy: DocumentIdStrategy,
+			MaxTasks: strconv.Itoa(tasks),
 		},
 	})
 
@@ -182,41 +185,51 @@ func (c *Client) CreateSingleTopicConnector(ctx context.Context, topic string) e
 }
 
 
-func (c *Client) CreateBulkTopicConnector(ctx context.Context, name string, topics []string) error {
+func (c *Client) CreateBulkTopicConnector(ctx context.Context, name string, tasks int, configs []ConnectorTopicConfig) error {
 	config := make(map[string]string)
-
-	topicsString := strings.Join(topics, ",")
 
 	config["connector.class"] = MongoSinkConnector
 	config["connection.uri"] = c.mongouri
-	config["topics"] = topicsString
 	config["database"] = c.database
 	config["key.converter"] = StringConverter
 	config["value.converter"] = JsonConverter
 	config["value.converter.schemas.enable"] = "false"
-	config["rotate.interval.ms"] = "1000"
+	config["rotate.interval.ms"] = "1000000"
+	config["document.id.strategy"] = "com.mongodb.kafka.connect.sink.processor.id.strategy.ProvidedInKeyStrategy"
+	config["max.tasks"] = strconv.Itoa(tasks)
 
-	for _, topic := range topics {
-		config[fmt.Sprintf("topic.override.%s.collection", topic)] = topic
+	topicList := make([]string, len(configs))
+	for i, conf := range configs {
+		topicList[i] = conf.Topic
+	}
+	config["topics"] = strings.Join(topicList, ",")
+
+	for _, topicConfig := range configs {
+		config[fmt.Sprintf("topic.override.%s.collection", topicConfig.Topic)] = topicConfig.Collection
+		config[fmt.Sprintf("topic.override.%s.rotate.interval.ms", topicConfig.Topic)] = strconv.Itoa(topicConfig.RotateIntervalMs)
 	}
 
 	jsonData, err := json.Marshal(CreateBulkConnectorRequest{
 		Name: name,
 		Config: config,
 	})
-
 	if err != nil {
 		return err
 	}
+
+	deadline, exists := ctx.Deadline()
+	if !exists {
+		deadline = time.Now().Add(1 << 32)
+	}
+	client := &http.Client{Timeout: time.Until(deadline)}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/connectors", c.baseurl), bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
-
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -308,36 +321,36 @@ func (c *Client) CheckTaskStatus(ctx context.Context, topic string, taskid int) 
 }
 
 
-func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
+func (c *Client) CheckTasksStatus(ctx context.Context, name string) (int, error) {
 
 	time.Sleep(1 * time.Second)
 
 	var taskList []Task
 
-	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s/tasks", c.baseurl, topic), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s/tasks", c.baseurl, name), nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf(string(body))
+		return 0, fmt.Errorf(string(body))
 	}
 
     if err := json.Unmarshal(body, &taskList); err != nil {
-		return err
+		return 0, err
 	}
 
 	for _, task := range taskList {
@@ -346,9 +359,9 @@ func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 		var retry = 0
 
 		for {
-			if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
+			if err := c.CheckTaskStatus(ctx, name, task.TaskDetail.Task); err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
-					return errors.Join(err, fmt.Errorf("retry %d times", retry), queryErr)
+					return len(taskList), errors.Join(err, fmt.Errorf("retry %d times", retry), queryErr)
 				} else {
 					queryErr = err
 					retry++
@@ -359,7 +372,7 @@ func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 			}
 		}
 	}
-	return nil
+	return len(taskList), nil
 }
 
 

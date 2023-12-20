@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
@@ -134,7 +135,7 @@ func (c *Client) CheckCompatibility(ctx context.Context) error {
 
 
 
-func (c *Client) CreateConnector(ctx context.Context, topic string) error {
+func (c *Client) CreateSingleTopicConnector(ctx context.Context, topic string) error {
 
 	jsonData, err := json.Marshal(CreateConnectorRequest{
 		Name: topic,
@@ -149,6 +150,59 @@ func (c *Client) CreateConnector(ctx context.Context, topic string) error {
 			ValueConverterSchemasEnable: "false",
 			RotateIntervalMs: "1000",
 		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/connectors", c.baseurl), bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		return fmt.Errorf(string(body))
+	}
+
+	return nil
+}
+
+
+func (c *Client) CreateBulkTopicConnector(ctx context.Context, name string, topics []string) error {
+	config := make(map[string]string)
+
+	topicsString := strings.Join(topics, ",")
+
+	config["connector.class"] = MongoSinkConnector
+	config["connection.uri"] = c.mongouri
+	config["topics"] = topicsString
+	config["database"] = c.database
+	config["key.converter"] = StringConverter
+	config["value.converter"] = JsonConverter
+	config["value.converter.schemas.enable"] = "false"
+	config["rotate.interval.ms"] = "1000"
+
+	for _, topic := range topics {
+		config[fmt.Sprintf("topic.override.%s.collection", topic)] = topic
+	}
+
+	jsonData, err := json.Marshal(CreateBulkConnectorRequest{
+		Name: name,
+		Config: config,
 	})
 
 	if err != nil {
@@ -287,8 +341,15 @@ func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 	}
 
 	for _, task := range taskList {
-		if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
-			return errors.Join(err, fmt.Errorf("failed to call CheckTaskStatus"))
+
+		for {
+			if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					return err
+				} else {
+					time.Sleep(1 * time.Second)
+				}
+			}
 		}
 	}
 	return nil

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
+	"github.com/Goboolean/fetch-system.IaC/internal/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,23 +30,17 @@ func TestConstuctor(t *testing.T) {
 }
 
 
-func TestConnector(t *testing.T) {
+func TestSingleTopicConnector(t *testing.T) {
 
 	c := SetupConnect()
+	defer TeardownConnect(c)
 
-	t.Cleanup(func() {
-		err := conf.DeleteAllTopics(context.Background())
-		assert.NoError(t, err)
-
-		TeardownConnect(c)
-	})
-
-	const topic = "test.connector.connect"
+	const topic = "test.singletopic.connect"
 
 	t.Run("CreateConnector", func(t *testing.T) {
 		ctx := context.Background()
 
-		err := c.CreateConnector(ctx, topic)
+		err := c.CreateSingleTopicConnector(ctx, topic)
 		assert.NoError(t, err)
 
 		err = c.CheckPluginConfig(ctx, topic)
@@ -55,8 +50,10 @@ func TestConnector(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Contains(t, list, topic)
 
+		time.Sleep(1 * time.Second)
+
 		err = c.CheckTasksStatus(ctx, topic)
-		t.Log(err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("DeleteConnector", func(t *testing.T) {
@@ -72,7 +69,47 @@ func TestConnector(t *testing.T) {
 }
 
 
-func TestCreateConnector(t *testing.T) {
+func TestBulkTopicConnector(t *testing.T) {
+
+	c := SetupConnect()
+	defer TeardownConnect(c)
+
+	var topics = []string{util.RandomString(10), util.RandomString(10), util.RandomString(10)}
+	const name = "test.bulktopic.connect"
+	
+	t.Run("CreateConnector", func(t *testing.T) {
+		ctx := context.Background()
+
+		err := c.CreateBulkTopicConnector(ctx, name, topics)
+		assert.NoError(t, err)
+
+		list, err := c.GetConnectors(ctx)
+		assert.NoError(t, err)
+		assert.Contains(t, list, name)
+
+		err = c.CheckTasksStatus(ctx, name)
+		assert.NoError(t, err)
+	})
+
+	t.Run("DeleteConnector", func(t *testing.T) {
+		ctx := context.Background()
+
+		err := c.DeleteConnector(ctx, name)
+		assert.NoError(t, err)
+
+		list, err := c.GetConnectors(ctx)
+		assert.NoError(t, err)
+		assert.NotContains(t, list, name)
+	})
+}
+
+
+
+
+
+func TestConnectorScenario(t *testing.T) {
+
+	// topic containing dots is possible: demonstrated by this test.
 
 	var (
 		productId = "test.sibujo.connect"
@@ -102,10 +139,8 @@ func TestCreateConnector(t *testing.T) {
 	t.Run("CreateConnector", func(t *testing.T) {
 		ctx := context.Background()
 
-		err := c.CreateConnector(ctx, topic)
+		err := c.CreateSingleTopicConnector(ctx, topic)
 		assert.NoError(t, err)
-
-		time.Sleep(1 * time.Second)
 
 		err = c.CheckTasksStatus(ctx, topic)
 		assert.NoError(t, err)

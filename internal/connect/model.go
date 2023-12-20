@@ -60,6 +60,10 @@ type CreateConnectorRequest struct {
 	Config ConnectorConfig `json:"config"`
 }
 
+type CreateBulkConnectorRequest struct {
+	Name   string                 `json:"name"`
+	Config map[string]string `json:"config"`
+}
 
 
 type Trade struct {

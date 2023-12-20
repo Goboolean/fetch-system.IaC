@@ -219,7 +219,7 @@ func (c *Client) CreateBulkTopicConnector(ctx context.Context, name string, task
 
 	deadline, exists := ctx.Deadline()
 	if !exists {
-		deadline = time.Now().Add(1 << 32)
+		deadline = time.Now().Add(time.Hour)
 	}
 	client := &http.Client{Timeout: time.Until(deadline)}
 

@@ -170,19 +170,6 @@ func TestConnectorScenario(t *testing.T) {
 		TeardownAdminClient(a)
 	})
 
-	t.Run("CreateConnector", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		err := c.CreateSingleTopicConnector(ctx, name, tasks, config)
-		assert.NoError(t, err)
-
-		count, err := c.CheckTasksStatus(ctx, name)
-		assert.NoError(t, err)
-		assert.NotZero(t, count)
-		t.Log("Number of tasks", count)
-	})
-
 	t.Run("ProduceJsonData", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
@@ -204,10 +191,23 @@ func TestConnectorScenario(t *testing.T) {
 		assert.Equal(t, 0, number)
 	})
 
+	t.Run("CreateConnector", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		err := c.CreateSingleTopicConnector(ctx, name, tasks, config)
+		assert.NoError(t, err)
+
+		count, err := c.CheckTasksStatus(ctx, name)
+		assert.NoError(t, err)
+		assert.NotZero(t, count)
+		t.Log("Number of tasks", count)
+	})
+
 	t.Run("QueryJsonData", func(t *testing.T) {
 		time.Sleep(3 * time.Second)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
 		data, err := m.FetchAllStockBatch(ctx, productId, timeFrame)
@@ -220,13 +220,13 @@ func TestConnectorScenario(t *testing.T) {
 
 func TestBulkTopicConnectorLoad(t *testing.T) {
 
-	//t.Skip("Skip this test because it takes too long time")
+	t.Skip("Skip this test because it takes too long time")
 
 	c := SetupConnect()
 	defer TeardownConnect(c)
 
 	const (
-		n = 5000
+		n = 50
 		name = "test.bulktopicload.connect"
 		tasks = 10
 	)

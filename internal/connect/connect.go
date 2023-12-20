@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/pkg/errors"
 )
 
 
@@ -204,8 +205,13 @@ func (c *Client) CheckPluginConfig(ctx context.Context, topic string) error {
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: received %d, expected %d", resp.StatusCode, http.StatusOK)
+		return fmt.Errorf(string(body))
 	}
 	return nil
 }
@@ -250,6 +256,8 @@ func (c *Client) CheckTaskStatus(ctx context.Context, topic string, taskid int) 
 
 func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 
+	time.Sleep(1 * time.Second)
+
 	var taskList []Task
 
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s/tasks", c.baseurl, topic), nil)
@@ -278,11 +286,9 @@ func (c *Client) CheckTasksStatus(ctx context.Context, topic string)  error {
 		return err
 	}
 
-	fmt.Println(string(body))
-
 	for _, task := range taskList {
 		if err := c.CheckTaskStatus(ctx, topic, task.TaskDetail.Task); err != nil {
-			return errors.Wrap(err, "failed to call CheckTaskStatus")
+			return errors.Join(err, fmt.Errorf("failed to call CheckTaskStatus"))
 		}
 	}
 	return nil

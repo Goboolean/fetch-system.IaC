@@ -72,10 +72,10 @@ func TestConnector(t *testing.T) {
 }
 
 
-func TestScenario(t *testing.T) {
+func TestCreateConnector(t *testing.T) {
 
 	var (
-		productId = "test.scenario.connect"
+		productId = "test.sibujo.connect"
 		timeFrame = "1s"
 		topic = fmt.Sprintf("%s.%s", productId, timeFrame)
 	)
@@ -105,8 +105,10 @@ func TestScenario(t *testing.T) {
 		err := c.CreateConnector(ctx, topic)
 		assert.NoError(t, err)
 
+		time.Sleep(1 * time.Second)
+
 		err = c.CheckTasksStatus(ctx, topic)
-		t.Log(err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("ProduceJsonData", func(t *testing.T) {

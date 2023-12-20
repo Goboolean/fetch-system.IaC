@@ -53,11 +53,26 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 	}, nil
 }
 
-
-func (c *Client) Ping(ctx context.Context) error {
+func (c *Client) ping(ctx context.Context) error {
 	mapi := clientv3.NewMaintenance(c.client)
 	_, err := mapi.Status(ctx, c.client.Endpoints()[0])
 	return err
+}
+
+
+func (c *Client) Ping(ctx context.Context) error {
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return nil
+	}
 }
 
 

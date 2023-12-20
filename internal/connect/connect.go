@@ -67,7 +67,7 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 
 func (c *Client) Close() {}
 
-func (c *Client) Ping(ctx context.Context) error {
+func (c *Client) ping(ctx context.Context) error {
 
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseurl, nil)
 	if err != nil {
@@ -92,6 +92,21 @@ func (c *Client) Ping(ctx context.Context) error {
     }
 
 	return nil
+}
+
+func (c *Client) Ping(ctx context.Context) error {
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return nil
+	}
 }
 
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/etcd"
@@ -46,7 +47,10 @@ func TestMain(m *testing.M) {
 
 func Test_Constructor(t *testing.T) {
 	t.Run("Ping", func(t *testing.T) {
-		err := client.Ping(context.Background())
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err := client.Ping(ctx)
 		assert.NoError(t, err)
 	})
 }

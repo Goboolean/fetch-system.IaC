@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/model"
@@ -31,6 +32,26 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 	return &Client{
 		conn: conn,
 	}, nil
+}
+
+func (c *Client) ping(ctx context.Context) error {
+	_, err := c.conn.GetMarketStatus(ctx)
+	return err
+}
+
+func (c *Client) Ping(ctx context.Context) error {
+	for {
+		if err := ctx.Err(); err != nil {
+			return err		
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		return nil
+	}
 }
 
 

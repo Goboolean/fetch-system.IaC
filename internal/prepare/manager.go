@@ -3,6 +3,7 @@ package prepare
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 	"github.com/Goboolean/fetch-system.IaC/internal/etcd"
@@ -83,11 +84,14 @@ func (m *Manager) PrepareTopics(ctx context.Context, baseConnectorName string, t
 		var connectorName = fmt.Sprintf("%s.[%d:%d]", baseConnectorName, i, end)
 		var connectorTasks = 10
 
+		start := time.Now()
 		log.Infof("Preparing topics batch started: %s)", connectorName)
+
 		if err := m.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics[i:end]); err != nil {
 			return err
 		}
-		log.Infof("Preparing topics batch finished: %s)", connectorName)
+
+		log.Infof("Preparing topics batch took: %s)", time.Since(start))
 	}
 
 	log.Info("Preparing topics finished")

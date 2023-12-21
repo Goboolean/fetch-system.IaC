@@ -27,6 +27,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build an image
+      - name: Build & push retriever image
         run: |
-          make build-app
+          make build-retriever-app
+
+      - name: Build & push preparer image
+        run: |
+          make build-preparer-app

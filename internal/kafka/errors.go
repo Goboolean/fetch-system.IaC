@@ -11,3 +11,5 @@ var ErrTopicAlreadySubscribed = errors.New("topic is already subscribed")
 var ErrTopicNotExists = errors.New("topic does not exists")
 
 var ErrInvalidSymbol = errors.New("invalid symbol")
+
+var ErrSomeOfTopicAlreadyExist = errors.New("some of topic already exist")

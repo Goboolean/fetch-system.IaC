@@ -130,7 +130,7 @@ func (c *Configurator) CreateTopics(ctx context.Context, topics ...string) error
 
 	for _, r := range result {
 		if err := r.Error; err.Code() != kafka.ErrNoError {
-			return fmt.Errorf(err.String())
+			return ErrSomeOfTopicAlreadyExist
 		}
 	}
 

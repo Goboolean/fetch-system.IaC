@@ -57,15 +57,30 @@ func (c *Configurator) Close() {
 	c.client.Close()
 	c.wg.Wait()
 }
-func (c *Configurator) Ping(ctx context.Context) error {
 
+func (c *Configurator) ping(ctx context.Context) error {
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		deadline = time.Now().Add(1 << 32)
+		deadline = time.Now().Add(time.Hour)
 	}
 
 	_, err := c.client.GetMetadata(nil, true, int(time.Until(deadline).Milliseconds()))
 	return err
+}
+
+func (c *Configurator) Ping(ctx context.Context) error {
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return nil
+	}
 }
 
 func (c *Configurator) CreateTopic(ctx context.Context, topic string) error {
@@ -115,7 +130,7 @@ func (c *Configurator) CreateTopics(ctx context.Context, topics ...string) error
 
 	for _, r := range result {
 		if err := r.Error; err.Code() != kafka.ErrNoError {
-			return fmt.Errorf(err.String())
+			return ErrSomeOfTopicAlreadyExist
 		}
 	}
 

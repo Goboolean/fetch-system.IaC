@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/model"
@@ -26,6 +27,19 @@ func SetupPolygon() *polygon.Client {
 	}
 
 	return p
+}
+
+func TestClient(t *testing.T) {
+
+	p := SetupPolygon()
+
+	t.Run("Ping", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		err := p.Ping(ctx)
+		assert.NoError(t, err)
+	})
 }
 
 

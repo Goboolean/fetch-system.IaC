@@ -29,22 +29,25 @@ func TestScenario(t *testing.T) {
 	)
 
 	t.Run("Setup prerarer", func(tt *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
 		var err error
 		var cleanup func()
 
-		preparer, cleanup, err = wire.InitializePreparer()
+		preparer, cleanup, err = wire.InitializePreparer(ctx)
 		assert.NoError(tt, err)
 		t.Cleanup(cleanup)
 
-		etcd, cleanup, err = wire.InitializeETCDClient()
+		etcd, cleanup, err = wire.InitializeETCDClient(ctx)
 		assert.NoError(tt, err)
 		t.Cleanup(cleanup)
 
-		connect, cleanup, err = wire.InitializeKafkaConnectClient()
+		connect, cleanup, err = wire.InitializeKafkaConnectClient(ctx)
 		assert.NoError(tt, err)
 		t.Cleanup(cleanup)
 
-		conf, cleanup, err = wire.InitializeKafkaConfigurator()
+		conf, cleanup, err = wire.InitializeKafkaConfigurator(ctx)
 		assert.NoError(tt, err)
 		t.Cleanup(cleanup)
 	})

@@ -79,14 +79,29 @@ func (p *Producer) Close() {
 	p.wg.Wait()
 }
 
-func (p *Producer) Ping(ctx context.Context) error {
+func (p *Producer) ping(ctx context.Context) error {
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		deadline = time.Now().Add(1 << 32)
+		deadline = time.Now().Add(time.Hour)
 	}
 
 	remaining := time.Until(deadline)
 	_, err := p.producer.GetMetadata(nil, true, int(remaining.Milliseconds()))
 	return err
+}
+
+func (p *Producer) Ping(ctx context.Context) error {
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if err := p.ping(ctx); err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return nil
+	}
 }

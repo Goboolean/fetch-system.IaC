@@ -155,7 +155,7 @@ func (c *Consumer) Close() {
 	c.wg.Wait()
 }
 
-func (c *Consumer) Ping(ctx context.Context) error {
+func (c *Consumer) ping(ctx context.Context) error {
 	// It requires ctx to be deadline set, otherwise it will return error
 	// It will return error if there is no response within deadline
 	deadline, ok := ctx.Deadline()
@@ -166,4 +166,19 @@ func (c *Consumer) Ping(ctx context.Context) error {
 	remaining := time.Until(deadline)
 	_, err := c.consumer.GetMetadata(nil, true, int(remaining.Milliseconds()))
 	return err
+}
+
+func (c *Consumer) Ping(ctx context.Context) error {
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return nil
+	}
 }

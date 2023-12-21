@@ -9,6 +9,8 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/polygon"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 
@@ -63,13 +65,16 @@ func (m *Manager) GetAllUSATickerDetails(ctx context.Context) ([]*model.TickerDe
 
 	tickers, err = m.polygon.GetAllTickers(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to get all tickers from polygon")
 	}
 
+	log.Infof("Received number of %d tickers", len(tickers))
+
+	log.Info("Getting ticker details from polygon")
 	for i := 0; i < retryCount; i++ {
 		resp, err := m.polygon.GetTickerDetailsMany(ctx, tickers)
-		if err != nil {
-			return nil, err
+		if err != nil { 
+			return nil, errors.Wrap(err, fmt.Sprintf("Failed to get ticker details from polygon (retry count: %d)", i))
 		}
 	
 		tickerDetails = append(tickerDetails, m.filterTickerDetailsRespOK(resp)...)
@@ -80,7 +85,7 @@ func (m *Manager) GetAllUSATickerDetails(ctx context.Context) ([]*model.TickerDe
 			break
 		}
 	}
-
+	log.Info("Getting ticker details from polygon finished")
 	return tickerDetails, nil
 }
 
@@ -89,7 +94,7 @@ func (m *Manager) StoreUSAStocks(ctx context.Context) error {
 
 	details, err := m.GetAllUSATickerDetails(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Failed to get all ticker details from polygon")
 	}
 
 	dtos := make([]db.InsertProductsParams, len(details))
@@ -105,9 +110,10 @@ func (m *Manager) StoreUSAStocks(ctx context.Context) error {
 	}
 
 	if _, err = m.db.InsertProducts(ctx, dtos); err != nil {
-		return err
+		return errors.Wrap(err, "Failed to insert products on database")
 	}
 
+	log.Infof("Successfully stored number of %d USA products", len(details))
 	return nil
 }
 
@@ -116,7 +122,7 @@ func (m *Manager) StoreKORStocks(ctx context.Context) error {
 
 	details, err := m.kis.ReadAllTickerDetalis()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Failed to read all ticker details from kis")
 	}
 
 	dtos := make([]db.InsertProductsParams, len(details))
@@ -140,8 +146,9 @@ func (m *Manager) StoreKORStocks(ctx context.Context) error {
 	}
 
 	if _, err = m.db.InsertProducts(ctx, dtos); err != nil {
-		return err
+		return errors.Wrap(err, "Failed to insert products on database")
 	}
 
+	log.Infof("Successfully stored number of %d KOR products", len(details))
 	return nil
 }

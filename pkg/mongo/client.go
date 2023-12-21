@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -41,7 +42,18 @@ func NewDB(c *resolver.ConfigMap) (*DB, error) {
 }
 
 func (db *DB) Ping(ctx context.Context) error {
-	return db.client.Ping(ctx, nil)
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		if err := db.client.Ping(ctx, nil); err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		return nil
+	}
 }
 
 func (db *DB) Close() error {

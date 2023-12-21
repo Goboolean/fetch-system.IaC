@@ -4,11 +4,13 @@ import (
 	"context"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/model"
 	"github.com/polygon-io/client-go/rest"
 	"github.com/polygon-io/client-go/rest/models"
+	log "github.com/sirupsen/logrus"
 )
 
 
@@ -33,9 +35,29 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 	}, nil
 }
 
+func (c *Client) ping(ctx context.Context) error {
+	_, err := c.conn.GetMarketStatus(ctx)
+	return err
+}
+
+func (c *Client) Ping(ctx context.Context) error {
+	for {
+		if err := ctx.Err(); err != nil {
+			return err		
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		return nil
+	}
+}
+
 
 func (c *Client) GetAllTickers(ctx context.Context) ([]string, error){
-	var includeOTC = true
+	var includeOTC = false
 	resp, err := c.conn.GetAllTickersSnapshot(ctx, &models.GetAllTickersSnapshotParams{
 		Locale: models.US,
 		MarketType: models.Stocks,
@@ -93,11 +115,14 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 		}
 
 		wg.Add(1)
-
 		go func(i int, ticker string) {
 			defer func() {
 				<-semaphore
 				wg.Done()
+
+				if i % 100 == 99 || i == len(tickers) - 1 {
+					log.Infof("Getting ticker details done [%d/%d]", i+1, len(tickers))
+				}
 			}()
 
 			resp, err := c.conn.GetTickerDetails(ctx, &models.GetTickerDetailsParams{
@@ -131,5 +156,6 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 	}
 
 	wg.Wait()
+
 	return details, nil
 }

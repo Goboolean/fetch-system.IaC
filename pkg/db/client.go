@@ -52,8 +52,20 @@ func NewDB(c *resolver.ConfigMap) (*Client, error) {
 }
 
 func (c *Client) Ping(ctx context.Context) error {
-	return c.db.(*pgx.Conn).Ping(ctx)
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		if err := c.db.(*pgx.Conn).Ping(ctx); err != nil {
+			continue
+		}
+
+		return nil
+	}
 }
+
+
 
 func (c *Client) Close() {
 	c.db.(*pgx.Conn).Close(context.Background())

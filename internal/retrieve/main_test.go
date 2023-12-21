@@ -24,12 +24,15 @@ var manager *retrieve.Manager
 
 func SetupManager() *retrieve.Manager {
 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	polygon, err := wire.InitializePolygonClient()
 	if err != nil {
 		panic(err)
 	}
 
-	db, cleanup, err := wire.InitializePostgreSQLClient()
+	db, cleanup, err := wire.InitializePostgreSQLClient(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -44,11 +47,15 @@ func SetupManager() *retrieve.Manager {
 }
 
 func Teardown() {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
 	for _, cleanup := range cleanups {
 		cleanup()
 	}
 
-	db, cleanup, err := wire.InitializePostgreSQLClient()
+	db, cleanup, err := wire.InitializePostgreSQLClient(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -71,8 +78,11 @@ func TestMain(m *testing.M) {
 
 
 func TestStoreKORStocks(t *testing.T) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 	
-	database, cleanup, err := wire.InitializePostgreSQLClient()
+	database, cleanup, err := wire.InitializePostgreSQLClient(ctx)
 	if assert.NoError(t, err) {
 		t.Cleanup(cleanup)
 	}
@@ -101,7 +111,10 @@ func TestStoreKORStocks(t *testing.T) {
 
 func TestStoreUSAStocks(t *testing.T) {
 
-	database, cleanup, err := wire.InitializePostgreSQLClient()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	database, cleanup, err := wire.InitializePostgreSQLClient(ctx)
 	if assert.NoError(t, err) {
 		t.Cleanup(cleanup)
 	}

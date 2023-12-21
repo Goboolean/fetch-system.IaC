@@ -67,7 +67,7 @@ func New(c *resolver.ConfigMap) (*Client, error) {
 
 func (c *Client) Close() {}
 
-func (c *Client) Ping(ctx context.Context) error {
+func (c *Client) ping(ctx context.Context) error {
 
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseurl, nil)
 	if err != nil {
@@ -92,6 +92,21 @@ func (c *Client) Ping(ctx context.Context) error {
     }
 
 	return nil
+}
+
+func (c *Client) Ping(ctx context.Context) error {
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return nil
+	}
 }
 
 
@@ -281,6 +296,35 @@ func (c *Client) CheckPluginConfig(ctx context.Context, topic string) error {
 		return fmt.Errorf(string(body))
 	}
 	return nil
+}
+
+func (c *Client) CheckConnectorExists(ctx context.Context, topic string) (bool, error) {
+
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s", c.baseurl, topic), nil)
+	if err != nil {
+		return false, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return false, nil
+	} else if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf(string(body))
+	}
+
+	return true, nil
 }
 
 

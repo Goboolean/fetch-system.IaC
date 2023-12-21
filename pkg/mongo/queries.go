@@ -4,24 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Goboolean/fetch-system.infrastructure/api/model"
+	"github.com/Goboolean/fetch-system.IaC/pkg/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-
-
-
-
-
-func (db *DB) FetchAllStockBatch(ctx context.Context, productId string, productType string) ([]*Aggregate, error) {
+func (db *DB) FetchAllStockBatch(ctx context.Context, productId string, timeFrame string) ([]*Aggregate, error) {
 	session, err := db.client.StartSession()
 	if err != nil {
 		return nil, err
 	}
 	defer session.EndSession(ctx)
 
-	symbol := fmt.Sprintf("%s.%s", productId, productType)
+	symbol := fmt.Sprintf("%s.%s", productId, timeFrame)
 	if valid := model.IsSymbolValid(symbol); !valid {
 		return nil, ErrInvalidSymbol
 	}
@@ -48,16 +43,14 @@ func (db *DB) FetchAllStockBatch(ctx context.Context, productId string, productT
 	})
 }
 
-
-
-func (db *DB) FetchAllStockBatchMassive(ctx context.Context, productId string, productType string, productCh chan<- *Aggregate) error {
+func (db *DB) FetchAllStockBatchMassive(ctx context.Context, productId string, timeFrame string, productCh chan<- *Aggregate) error {
 	session, err := db.client.StartSession()
 	if err != nil {
 		return err
 	}
 	defer session.EndSession(ctx)
 
-	symbol := fmt.Sprintf("%s.%s", productId, productType)
+	symbol := fmt.Sprintf("%s.%s", productId, timeFrame)
 	if valid := model.IsSymbolValid(symbol); !valid {
 		return ErrInvalidSymbol
 	}
@@ -82,15 +75,14 @@ func (db *DB) FetchAllStockBatchMassive(ctx context.Context, productId string, p
 	})
 }
 
-
-func (db *DB) InsertProduct(ctx context.Context, productId string, productType string, data *Aggregate) error {
+func (db *DB) InsertProduct(ctx context.Context, productId string, timeFrame string, data *Aggregate) error {
 	session, err := db.client.StartSession()
 	if err != nil {
 		return err
 	}
 	defer session.EndSession(ctx)
 
-	symbol := fmt.Sprintf("%s.%s", productId, productType)
+	symbol := fmt.Sprintf("%s.%s", productId, timeFrame)
 	if valid := model.IsSymbolValid(symbol); !valid {
 		return ErrInvalidSymbol
 	}

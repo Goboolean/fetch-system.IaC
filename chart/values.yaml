@@ -1,0 +1,26 @@
+mongodb:
+  auth:
+    rootPassword: golution
+    username: goboolean
+    password: password
+    database: goboolean-stock
+  architecture: replicaset
+  replicaSetName: rs0
+  replicas:
+    secondary: 2
+  arbiter:
+    enabled: false
+
+kafka:
+  auth:
+    enabled: false
+  sasl:
+    interbroker:
+      password: password
+    controller:
+      password: password
+  broker:
+    replicaCount: 3
+  kraft:
+    enabled: true
+    clusterId: fMCL8kv1SWm87L_Md-I2hg

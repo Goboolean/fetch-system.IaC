@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Chart.Name }}-preparer"
+spec:
+  template:
+    metadata:
+      name: "{{ .Chart.Name }}-preparer"
+    spec:
+      containers:
+      - name: preparer
+        image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        env:
+        - name: POSTGRES_HOST
+          value: "{{ .Values.preparer.env.postgresqlHost }}"
+        - name: POSTGRES_PORT
+          value: "{{ .Values.preparer.env.postgresqlPort }}"
+        - name: POSTGRES_USER
+          value: "{{ .Values.preparer.env.postgresqlUser }}"
+        - name: POSTGRES_PASSWORD
+          value: "{{ .Values.preparer.env.postgresqlPassword }}"
+        - name: POSTGRES_DATABASE
+          value: "{{ .Values.preparer.env.postgresqlDatabase }}"
+        - name: ETCD_HOST
+          value: "{{ .Values.preparer.env.etcdHost }}"
+        - name: KAFKA_CONNECT_HOST
+          value: "{{ .Values.preparer.env.kafkaConnectHost }}"
+        - name: KAFKA_BOOTSTRAP_HOST
+          value: "{{ .Values.preparer.env.kafkaBootstrapHost }}"
+        - name: POLYGON_SECRET_KEY
+          value: "{{ .Values.preparer.env.polygonSecretKey }}"
+      restartPolicy: Never
+  backoffLimit: 3

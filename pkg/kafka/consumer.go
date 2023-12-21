@@ -7,13 +7,11 @@ import (
 	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.infrastructure/api/model"
+	"github.com/Goboolean/fetch-system.IaC/pkg/model"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 )
-
-
 
 type Consumer struct {
 	consumer *kafka.Consumer
@@ -26,13 +24,14 @@ type Consumer struct {
 }
 
 // example:
-// p, err := NewConsumer[*model.Event](&resolver.ConfigMap{
-//   "BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
-//   "REGISTRY_HOST":  os.Getenv("KAFKA_REGISTRY_HOST"), // optional
-//   "GROUP_ID":       "GROUP_ID",
-//   "PROCESSOR_COUNT": os.Getenv("KAFKA_PROCESSOR_COUNT"),
-//   "TOPIC":          "TOPIC",
-// }, subscribeListenerImpl)
+//
+//	p, err := NewConsumer[*model.Event](&resolver.ConfigMap{
+//	  "BOOTSTRAP_HOST": os.Getenv("KAFKA_BOOTSTRAP_HOST"),
+//	  "REGISTRY_HOST":  os.Getenv("KAFKA_REGISTRY_HOST"), // optional
+//	  "GROUP_ID":       "GROUP_ID",
+//	  "PROCESSOR_COUNT": os.Getenv("KAFKA_PROCESSOR_COUNT"),
+//	  "TOPIC":          "TOPIC",
+//	}, subscribeListenerImpl)
 func NewConsumer(c *resolver.ConfigMap) (*Consumer, error) {
 
 	bootstrap_host, err := c.GetStringKey("BOOTSTRAP_HOST")
@@ -46,8 +45,8 @@ func NewConsumer(c *resolver.ConfigMap) (*Consumer, error) {
 	}
 
 	conn, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers":   bootstrap_host,
-		"group.id":            group_id,
+		"bootstrap.servers": bootstrap_host,
+		"group.id":          group_id,
 		"auto.offset.reset": "earliest",
 	})
 
@@ -55,14 +54,13 @@ func NewConsumer(c *resolver.ConfigMap) (*Consumer, error) {
 
 	instance := &Consumer{
 		consumer: conn,
-		wg: sync.WaitGroup{},
-		ctx: ctx,
-		cancel: cancel,
+		wg:       sync.WaitGroup{},
+		ctx:      ctx,
+		cancel:   cancel,
 	}
 
 	return instance, nil
 }
-
 
 func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error) {
 
@@ -85,7 +83,7 @@ func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error)
 			if err := c.ctx.Err(); err != nil {
 				return
 			}
-			
+
 			msg, err := c.consumer.ReadMessage(time.Second * 1)
 			if err != nil {
 				continue
@@ -106,7 +104,6 @@ func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error)
 
 	return channel, nil
 }
-
 
 func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *model.Aggregate, error) {
 
@@ -129,7 +126,7 @@ func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *
 			if err := c.ctx.Err(); err != nil {
 				return
 			}
-			
+
 			msg, err := c.consumer.ReadMessage(time.Second * 1)
 			if err != nil {
 				continue
@@ -151,7 +148,6 @@ func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *
 	return channel, nil
 }
 
-
 func (c *Consumer) Close() {
 	c.cancel()
 	time.Sleep(time.Second * 1)
@@ -159,16 +155,30 @@ func (c *Consumer) Close() {
 	c.wg.Wait()
 }
 
-
-func (c *Consumer) Ping(ctx context.Context) error {
+func (c *Consumer) ping(ctx context.Context) error {
 	// It requires ctx to be deadline set, otherwise it will return error
 	// It will return error if there is no response within deadline
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return ErrDeadlineSettingRequired
+		deadline = time.Now().Add(1 << 32)
 	}
 
 	remaining := time.Until(deadline)
 	_, err := c.consumer.GetMetadata(nil, true, int(remaining.Milliseconds()))
 	return err
+}
+
+func (c *Consumer) Ping(ctx context.Context) error {
+	for {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		if err := c.ping(ctx); err != nil {
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return nil
+	}
 }

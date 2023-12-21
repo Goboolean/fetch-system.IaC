@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: fetch-system-initializer
+spec:
+  template:
+    metadata:
+      name: fetch-system-initializer
+    spec:
+      containers:
+      - name: fetch-system-initializer
+        image: fetch-system-initializer:latest
+      restartPolicy: Never
+  backoffLimit: 3

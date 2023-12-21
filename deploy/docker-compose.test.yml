@@ -1,0 +1,141 @@
+services:
+  server:
+    build:
+      context: ../
+      dockerfile: ./deploy/Dockerfile.test
+    depends_on:
+      - kafka
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
+      - kafka-connect
+      - postgresql
+      - etcd
+    environment:
+      - MONGODB_CONNECTION_URI=mongodb://goboolean:password@mongodb-primary:27017/goboolean-stock
+      - MONGODB_DATABASE=goboolean-stock
+      - KAFKA_BOOTSTRAP_HOST=kafka:9092
+      - KAFKA_CONNECT_HOST=kafka-connect:8083
+      - POSTGRES_HOST=postgresql
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=goboolean
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DATABASE=goboolean
+      - ETCD_HOST=etcd:2379
+    env_file:
+      - .env
+
+  kafka:
+    hostname: kafka
+    image: docker.io/bitnami/kafka:3.5
+    ports:
+      - "9092"
+    environment:
+      # KRaft settings 
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # Listeners 
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      # Kafka settings
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - "ALLOW_PLAINTEXT_LISTENER=yes" 
+      - "listeners=PLAINTEXT://0.0.0.0/0"
+      - "advertised.listeners=PLAINTEXT://10.178.0.3:9092"
+
+  mongodb-primary:
+    image: 'bitnami/mongodb:latest'
+    ports:
+      - "27017"
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=password
+      - MONGODB_PORT_NUMBER=27017
+      - MONGODB_USERNAME=goboolean
+      - MONGODB_PASSWORD=password
+      - MONGODB_DATABASE=goboolean-stock
+
+  mongodb-secondary:
+    image: 'bitnami/mongodb:latest'
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=password
+      - MONGODB_USERNAME=goboolean
+      - MONGODB_PASSWORD=password
+      - MONGODB_DATABASE=goboolean-stock
+      - ALLOW_EMPTY_PASSWORD=yes 
+
+  mongodb-arbiter:
+    image: 'bitnami/mongodb:latest'
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_PORT_NUMBER=27017
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password
+      - MONGODB_REPLICA_SET_KEY=password
+      - MONGODB_USERNAME=goboolean
+      - MONGODB_PASSWORD=password
+      - MONGODB_DATABASE=goboolean-stock
+      - ALLOW_EMPTY_PASSWORD=yes
+
+  kafka-connect:
+    build:
+      context: ../
+      dockerfile: ./deploy/Dockerfile.kafka-connect
+    depends_on:
+      - kafka
+      - mongodb-primary
+      - mongodb-secondary
+      - mongodb-arbiter
+    ports:
+      - "8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: kafka-connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: kafka-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: kafka-connect-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+
+  postgresql:
+    image: bitnami/postgresql:latest
+    ports:
+      - "5432"
+    environment:
+      - POSTGRESQL_USERNAME=goboolean
+      - POSTGRESQL_PASSWORD=password
+      - POSTGRESQL_DATABASE=goboolean
+    volumes:
+      - ../api/sql/schema.sql:/docker-entrypoint-initdb.d/init.sql
+
+  etcd:
+    image: bitnami/etcd:latest
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+    ports:
+      - "2379"
+      - "2380"

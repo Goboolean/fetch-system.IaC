@@ -2,8 +2,7 @@ package mongo
 
 import (
 	"context"
-	"fmt"
-	"net/url"
+	"time"
 
 	"github.com/Goboolean/common/pkg/resolver"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,22 +16,7 @@ type DB struct {
 
 func NewDB(c *resolver.ConfigMap) (*DB, error) {
 
-	user, err := c.GetStringKey("USER")
-	if err != nil {
-		return nil, err
-	}
-
-	password, err := c.GetStringKey("PASSWORD")
-	if err != nil {
-		return nil, err
-	}
-
-	host, err := c.GetStringKey("HOST")
-	if err != nil {
-		return nil, err
-	}
-
-	port, err := c.GetStringKey("PORT")
+	conn_url, err := c.GetStringKey("CONNECTION_URI")
 	if err != nil {
 		return nil, err
 	}
@@ -42,21 +26,8 @@ func NewDB(c *resolver.ConfigMap) (*DB, error) {
 		return nil, err
 	}
 
-	address := fmt.Sprintf("%s:%s", host, port)
-
-	u := &url.URL{
-		Scheme: "mongodb",
-		User:   url.UserPassword(user, password),
-		Host:   address,
-		Path:   "/",
-		RawQuery: url.Values{
-			"authSource": []string{database},
-			"directConnection": []string{"true"},
-		}.Encode(),
-	}
-
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(u.String()).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI(conn_url).SetServerAPIOptions(serverAPI)
 
 	client, err := mongo.Connect(context.Background(), opts)
 
@@ -71,7 +42,18 @@ func NewDB(c *resolver.ConfigMap) (*DB, error) {
 }
 
 func (db *DB) Ping(ctx context.Context) error {
-	return db.client.Ping(ctx, nil)
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		if err := db.client.Ping(ctx, nil); err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		return nil
+	}
 }
 
 func (db *DB) Close() error {

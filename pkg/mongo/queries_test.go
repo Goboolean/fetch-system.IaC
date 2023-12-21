@@ -8,21 +8,16 @@ import (
 
 	_ "github.com/Goboolean/common/pkg/env"
 	"github.com/Goboolean/common/pkg/resolver"
-	"github.com/Goboolean/fetch-system.infrastructure/pkg/mongo"
+	"github.com/Goboolean/fetch-system.IaC/pkg/mongo"
 	"github.com/stretchr/testify/assert"
 )
-
-
 
 var db *mongo.DB
 
 func SetupMongo() *mongo.DB {
 	db, err := mongo.NewDB(&resolver.ConfigMap{
-		"HOST":     os.Getenv("MONGO_HOST"),
-		"USER":     os.Getenv("MONGO_USER"),
-		"PORT":     os.Getenv("MONGO_PORT"),
-		"PASSWORD": os.Getenv("MONGO_PASS"),
-		"DATABASE": os.Getenv("MONGO_DATABASE"),
+		"CONNECTION_URI": os.Getenv("MONGODB_CONNECTION_URI"),
+		"DATABASE": os.Getenv("MONGODB_DATABASE"),
 	})
 	if err != nil {
 		panic(err)
@@ -41,11 +36,9 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-
-
 func TestConstructor(t *testing.T) {
 	t.Run("Ping", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 		defer cancel()
 
 		err := db.Ping(ctx)
@@ -53,10 +46,9 @@ func TestConstructor(t *testing.T) {
 	})
 }
 
-
 func TestQueries(t *testing.T) {
 
-	const productId = "test.goboolean.kor"
+	const productId = "test.goboolean.io"
 	const productType = "1s"
 
 	var data = &mongo.Aggregate{

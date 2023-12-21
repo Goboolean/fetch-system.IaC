@@ -298,6 +298,35 @@ func (c *Client) CheckPluginConfig(ctx context.Context, topic string) error {
 	return nil
 }
 
+func (c *Client) CheckConnectorExists(ctx context.Context, topic string) (bool, error) {
+
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/connectors/%s", c.baseurl, topic), nil)
+	if err != nil {
+		return false, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, err
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return false, nil
+	} else if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf(string(body))
+	}
+
+	return true, nil
+}
+
 
 func (c *Client) CheckTaskStatus(ctx context.Context, topic string, taskid int) error {
 

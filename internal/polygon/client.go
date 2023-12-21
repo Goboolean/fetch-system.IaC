@@ -10,6 +10,7 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/model"
 	"github.com/polygon-io/client-go/rest"
 	"github.com/polygon-io/client-go/rest/models"
+	log "github.com/sirupsen/logrus"
 )
 
 
@@ -56,7 +57,7 @@ func (c *Client) Ping(ctx context.Context) error {
 
 
 func (c *Client) GetAllTickers(ctx context.Context) ([]string, error){
-	var includeOTC = true
+	var includeOTC = false
 	resp, err := c.conn.GetAllTickersSnapshot(ctx, &models.GetAllTickersSnapshotParams{
 		Locale: models.US,
 		MarketType: models.Stocks,
@@ -114,11 +115,14 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 		}
 
 		wg.Add(1)
-
 		go func(i int, ticker string) {
 			defer func() {
 				<-semaphore
 				wg.Done()
+
+				if i % 100 == 99 || i == len(tickers) - 1 {
+					log.Infof("Getting ticker details done [%d/%d]", i+1, len(tickers))
+				}
 			}()
 
 			resp, err := c.conn.GetTickerDetails(ctx, &models.GetTickerDetailsParams{
@@ -152,5 +156,6 @@ func (c *Client) GetTickerDetailsMany(ctx context.Context, tickers []string) ([]
 	}
 
 	wg.Wait()
+
 	return details, nil
 }

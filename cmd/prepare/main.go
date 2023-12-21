@@ -15,7 +15,6 @@ import (
 
 
 
-
 func main() {
 	log.Info("Application started")
 
@@ -33,7 +32,7 @@ func main() {
 		log.Panic(errors.Wrap(err, "Failed to synchronize etcd to db"))
 	}
 
-	if err := preparer.PrepareTopics(ctx, topics); err != nil {
+	if err := preparer.PrepareTopics(ctx, "connector", topics); err != nil {
 		log.Panic(errors.Wrap(err, "Failed to prepare topics"))
 	}
 

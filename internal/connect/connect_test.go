@@ -49,8 +49,18 @@ func TestSingleTopicConnector(t *testing.T) {
 		RotateIntervalMs: 1000,			
 	}
 
+	t.Run("CheckConnectorNotExists", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+
+		exists, err := c.CheckConnectorExists(ctx, name)
+		assert.NoError(t, err)
+		assert.False(t, exists)
+	})
+
 	t.Run("CreateConnector", func(t *testing.T) {
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		err := c.CreateSingleTopicConnector(ctx, name, tasks, config)
 		assert.NoError(t, err)

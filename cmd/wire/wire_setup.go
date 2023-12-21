@@ -81,6 +81,7 @@ func ProvideKafkaConfigurator(ctx context.Context, c *resolver.ConfigMap) (*kafk
 
 	return k, func() {
 		k.Close()
+		log.Info("Kafka configurator is successfully closed")
 	}, nil
 }
 
@@ -96,6 +97,7 @@ func ProvideKafkaProducer(ctx context.Context, c *resolver.ConfigMap) (*kafka.Co
 
 	return k, func() {
 		k.Close()
+		log.Info("Kafka producer is successfully closed")
 	}, nil
 }
 
@@ -111,7 +113,11 @@ func ProvideETCDClient(ctx context.Context, c *resolver.ConfigMap) (*etcd.Client
 	log.Info("ETCD client is ready")
 
 	return e, func() {
-		e.Close()
+		if err := e.Close(); err != nil {
+			log.Error(errors.Wrap(err, "Failed to close etcd client"))
+		} else {
+			log.Info("ETCD client is successfully closed")
+		}
 	}, nil
 }
 
@@ -127,6 +133,7 @@ func ProvidePostgreSQLClient(ctx context.Context, c *resolver.ConfigMap) (*db.Cl
 
 	return p, func() {
 		p.Close()
+		log.Info("PostgreSQL client is successfully closed")
 	}, nil
 }
 
@@ -142,6 +149,7 @@ func ProvideKafkaConnectClient(ctx context.Context, c *resolver.ConfigMap) (*con
 
 	return k, func() {
 		k.Close()
+		log.Info("Kafka connect client is successfully closed")
 	}, nil
 }
 

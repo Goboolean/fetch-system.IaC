@@ -7,6 +7,7 @@
 package wire
 
 import (
+	"context"
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 	"github.com/Goboolean/fetch-system.IaC/internal/etcd"
@@ -16,6 +17,8 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/prepare"
 	"github.com/Goboolean/fetch-system.IaC/internal/retrieve"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -25,9 +28,9 @@ import (
 
 // Injectors from wire_setup.go:
 
-func InitializeKafkaConfigurator() (*kafka.Configurator, func(), error) {
+func InitializeKafkaConfigurator(ctx context.Context) (*kafka.Configurator, func(), error) {
 	configMap := ProvideKafkaConfig()
-	configurator, cleanup, err := ProvideKafkaConfigurator(configMap)
+	configurator, cleanup, err := ProvideKafkaConfigurator(ctx, configMap)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -36,9 +39,9 @@ func InitializeKafkaConfigurator() (*kafka.Configurator, func(), error) {
 	}, nil
 }
 
-func InitializeKafkaProducer() (*kafka.Configurator, func(), error) {
+func InitializeKafkaProducer(ctx context.Context) (*kafka.Configurator, func(), error) {
 	configMap := ProvideKafkaConfig()
-	configurator, cleanup, err := ProvideKafkaProducer(configMap)
+	configurator, cleanup, err := ProvideKafkaProducer(ctx, configMap)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -47,9 +50,9 @@ func InitializeKafkaProducer() (*kafka.Configurator, func(), error) {
 	}, nil
 }
 
-func InitializeETCDClient() (*etcd.Client, func(), error) {
+func InitializeETCDClient(ctx context.Context) (*etcd.Client, func(), error) {
 	configMap := ProvideETCDConfig()
-	client, cleanup, err := ProvideETCDClient(configMap)
+	client, cleanup, err := ProvideETCDClient(ctx, configMap)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -58,9 +61,9 @@ func InitializeETCDClient() (*etcd.Client, func(), error) {
 	}, nil
 }
 
-func InitializePostgreSQLClient() (*db.Queries, func(), error) {
+func InitializePostgreSQLClient(ctx context.Context) (*db.Queries, func(), error) {
 	configMap := ProvidePostgreSQLConfig()
-	queries, cleanup, err := ProvidePostgreSQLClient(configMap)
+	queries, cleanup, err := ProvidePostgreSQLClient(ctx, configMap)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -69,9 +72,9 @@ func InitializePostgreSQLClient() (*db.Queries, func(), error) {
 	}, nil
 }
 
-func InitializeKafkaConnectClient() (*connect.Client, func(), error) {
+func InitializeKafkaConnectClient(ctx context.Context) (*connect.Client, func(), error) {
 	configMap := ProvideKafkaConnectConfig()
-	client, cleanup, err := ProvideKafkaConnectClient(configMap)
+	client, cleanup, err := ProvideKafkaConnectClient(ctx, configMap)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -98,23 +101,23 @@ func InitializePolygonClient() (*polygon.Client, error) {
 	return client, nil
 }
 
-func InitializePreparer() (*prepare.Manager, func(), error) {
-	client, cleanup, err := InitializeETCDClient()
+func InitializePreparer(ctx context.Context) (*prepare.Manager, func(), error) {
+	client, cleanup, err := InitializeETCDClient(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	queries, cleanup2, err := InitializePostgreSQLClient()
+	queries, cleanup2, err := InitializePostgreSQLClient(ctx)
 	if err != nil {
 		cleanup()
 		return nil, nil, err
 	}
-	connectClient, cleanup3, err := InitializeKafkaConnectClient()
+	connectClient, cleanup3, err := InitializeKafkaConnectClient(ctx)
 	if err != nil {
 		cleanup2()
 		cleanup()
 		return nil, nil, err
 	}
-	configurator, cleanup4, err := InitializeKafkaConfigurator()
+	configurator, cleanup4, err := InitializeKafkaConfigurator(ctx)
 	if err != nil {
 		cleanup3()
 		cleanup2()
@@ -130,12 +133,12 @@ func InitializePreparer() (*prepare.Manager, func(), error) {
 	}, nil
 }
 
-func InitializeRetriever() (*retrieve.Manager, func(), error) {
+func InitializeRetriever(ctx context.Context) (*retrieve.Manager, func(), error) {
 	client, err := InitializePolygonClient()
 	if err != nil {
 		return nil, nil, err
 	}
-	queries, cleanup, err := InitializePostgreSQLClient()
+	queries, cleanup, err := InitializePostgreSQLClient(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -194,55 +197,75 @@ func ProvidePolygonConfig() *resolver.ConfigMap {
 	}
 }
 
-func ProvideKafkaConfigurator(c *resolver.ConfigMap) (*kafka.Configurator, func(), error) {
+func ProvideKafkaConfigurator(ctx context.Context, c *resolver.ConfigMap) (*kafka.Configurator, func(), error) {
 	k, err := kafka.New(c)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "Failed to create kafka configurator")
 	}
+	if err := k.Ping(ctx); err != nil {
+		return nil, nil, errors.Wrap(err, "Failed to send ping to kafka configurator")
+	}
+	logrus.Info("Kafka configurator is ready")
 
 	return k, func() {
 		k.Close()
 	}, nil
 }
 
-func ProvideKafkaProducer(c *resolver.ConfigMap) (*kafka.Configurator, func(), error) {
+func ProvideKafkaProducer(ctx context.Context, c *resolver.ConfigMap) (*kafka.Configurator, func(), error) {
 	k, err := kafka.New(c)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "Failed to create kafka producer")
 	}
+	if err := k.Ping(ctx); err != nil {
+		return nil, nil, errors.Wrap(err, "Failed to send ping to kafka producer")
+	}
+	logrus.Info("Kafka producer is ready")
 
 	return k, func() {
 		k.Close()
 	}, nil
 }
 
-func ProvideETCDClient(c *resolver.ConfigMap) (*etcd.Client, func(), error) {
+func ProvideETCDClient(ctx context.Context, c *resolver.ConfigMap) (*etcd.Client, func(), error) {
 	e, err := etcd.New(c)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "Failed to create etcd client")
 	}
+	if err := e.Ping(ctx); err != nil {
+		return nil, nil, errors.Wrap(err, "Failed to send ping to etcd client")
+	}
+	logrus.Info("ETCD client is ready")
 
 	return e, func() {
 		e.Close()
 	}, nil
 }
 
-func ProvidePostgreSQLClient(c *resolver.ConfigMap) (*db.Client, func(), error) {
+func ProvidePostgreSQLClient(ctx context.Context, c *resolver.ConfigMap) (*db.Client, func(), error) {
 	p, err := db.NewDB(c)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "Failed to create postgresql client")
 	}
+	if err := p.Ping(ctx); err != nil {
+		return nil, nil, errors.Wrap(err, "Failed to send ping to postgresql client")
+	}
+	logrus.Info("PostgreSQL client is ready")
 
 	return p, func() {
 		p.Close()
 	}, nil
 }
 
-func ProvideKafkaConnectClient(c *resolver.ConfigMap) (*connect.Client, func(), error) {
+func ProvideKafkaConnectClient(ctx context.Context, c *resolver.ConfigMap) (*connect.Client, func(), error) {
 	k, err := connect.New(c)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, errors.Wrap(err, "Failed to create kafka connect client")
 	}
+	if err := k.Ping(ctx); err != nil {
+		return nil, nil, errors.Wrap(err, "Failed to send ping to kafka connect client")
+	}
+	logrus.Info("Kafka connect client is ready")
 
 	return k, func() {
 		k.Close()

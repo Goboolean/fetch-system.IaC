@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Chart.Name }}-db-initer"
+spec:
+  template:
+    metadata:
+      name: "{{ .Chart.Name }}-db-initer"
+    spec:
+      containers:
+      - name: db-initer
+        image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        env:
+        - name: POSTGRES_HOST
+          value: "{{ .Values.db-initer.env.postgresqlHost }}"
+        - name: POSTGRES_PORT
+          value: "{{ .Values.db-initer.env.postgresqlPort }}"
+        - name: POSTGRES_USER
+          value: "{{ .Values.db-initer.env.postgresqlUser }}"
+        - name: POSTGRES_PASSWORD
+          value: "{{ .Values.db-initer.env.postgresqlPassword }}"
+        - name: POSTGRES_DATABASE
+          value: "{{ .Values.db-initer.env.postgresqlDatabase }}"
+        - name: POLYGON_SECRET_KEY
+          value: "{{ .Values.db-initer.env.polygonSecretKey }}"
+      restartPolicy: Never
+  backoffLimit: 3

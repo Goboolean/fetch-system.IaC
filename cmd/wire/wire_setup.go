@@ -13,8 +13,8 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
 	"github.com/Goboolean/fetch-system.IaC/internal/kis"
 	"github.com/Goboolean/fetch-system.IaC/internal/polygon"
-	"github.com/Goboolean/fetch-system.IaC/internal/prepare"
-	"github.com/Goboolean/fetch-system.IaC/internal/retrieve"
+	"github.com/Goboolean/fetch-system.IaC/internal/preparer"
+	"github.com/Goboolean/fetch-system.IaC/internal/dbiniter"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
@@ -221,23 +221,23 @@ func InitializePolygonClient() (*polygon.Client, error) {
 
 
 
-func InitializePreparer(ctx context.Context) (*prepare.Manager, func(), error) {
+func InitializePreparer(ctx context.Context) (*preparer.Manager, func(), error) {
 	wire.Build(
 		InitializeKafkaConfigurator,
 		InitializeETCDClient,
 		InitializePostgreSQLClient,
 		InitializeKafkaConnectClient,
-		prepare.New,
+		preparer.New,
 	)
 	return nil, nil, nil
 }
 
-func InitializeRetriever(ctx context.Context) (*retrieve.Manager, func(), error) {
+func InitializeRetriever(ctx context.Context) (*dbiniter.Manager, func(), error) {
 	wire.Build(
 		InitializePostgreSQLClient,
 		InitializeKISReader,
 		InitializePolygonClient,
-		retrieve.New,
+		dbiniter.New,
 	)
 	return nil, nil, nil
 }

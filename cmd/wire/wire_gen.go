@@ -10,12 +10,12 @@ import (
 	"context"
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
+	"github.com/Goboolean/fetch-system.IaC/internal/dbiniter"
 	"github.com/Goboolean/fetch-system.IaC/internal/etcd"
 	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
 	"github.com/Goboolean/fetch-system.IaC/internal/kis"
 	"github.com/Goboolean/fetch-system.IaC/internal/polygon"
-	"github.com/Goboolean/fetch-system.IaC/internal/prepare"
-	"github.com/Goboolean/fetch-system.IaC/internal/retrieve"
+	"github.com/Goboolean/fetch-system.IaC/internal/preparer"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -101,7 +101,7 @@ func InitializePolygonClient() (*polygon.Client, error) {
 	return client, nil
 }
 
-func InitializePreparer(ctx context.Context) (*prepare.Manager, func(), error) {
+func InitializePreparer(ctx context.Context) (*preparer.Manager, func(), error) {
 	client, cleanup, err := InitializeETCDClient(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -124,7 +124,7 @@ func InitializePreparer(ctx context.Context) (*prepare.Manager, func(), error) {
 		cleanup()
 		return nil, nil, err
 	}
-	manager := prepare.New(client, queries, connectClient, configurator)
+	manager := preparer.New(client, queries, connectClient, configurator)
 	return manager, func() {
 		cleanup4()
 		cleanup3()
@@ -133,7 +133,7 @@ func InitializePreparer(ctx context.Context) (*prepare.Manager, func(), error) {
 	}, nil
 }
 
-func InitializeRetriever(ctx context.Context) (*retrieve.Manager, func(), error) {
+func InitializeRetriever(ctx context.Context) (*dbiniter.Manager, func(), error) {
 	client, err := InitializePolygonClient()
 	if err != nil {
 		return nil, nil, err
@@ -147,7 +147,7 @@ func InitializeRetriever(ctx context.Context) (*retrieve.Manager, func(), error)
 		cleanup()
 		return nil, nil, err
 	}
-	manager := retrieve.New(client, queries, reader)
+	manager := dbiniter.New(client, queries, reader)
 	return manager, func() {
 		cleanup()
 	}, nil

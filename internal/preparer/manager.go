@@ -1,4 +1,4 @@
-package prepare
+package preparer
 
 import (
 	"context"

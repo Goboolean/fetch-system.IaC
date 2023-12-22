@@ -1,4 +1,4 @@
-package prepare_test
+package preparer_test
 
 import (
 	"context"
@@ -16,13 +16,13 @@ func Setup() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	retriever, cleanup, err := wire.InitializeRetriever(ctx)
+	dbiniter, cleanup, err := wire.InitializeRetriever(ctx)
 	if err != nil {
 		panic(err)
 	}
 	cleanups = append(cleanups, cleanup)
 
-	if err := retriever.StoreKORStocks(ctx); err != nil {
+	if err := dbiniter.StoreKORStocks(ctx); err != nil {
 		panic(err)
 	}
 }

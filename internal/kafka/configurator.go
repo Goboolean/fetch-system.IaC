@@ -9,6 +9,7 @@ import (
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/util"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	log "github.com/sirupsen/logrus"
 )
 
 // Configurator has a role for making and deleting topic, checking topic exists, and getting topic list.
@@ -70,13 +71,14 @@ func (c *Configurator) ping(ctx context.Context) error {
 
 func (c *Configurator) Ping(ctx context.Context) error {
 	for {
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
 		if err := c.ping(ctx); err != nil {
-			time.Sleep(1 * time.Second)
-			continue
+			log.WithField("error", err).Error("Failed to ping, waiting 5 seconds")
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(5 * time.Second):
+				continue
+			}
 		}
 
 		return nil

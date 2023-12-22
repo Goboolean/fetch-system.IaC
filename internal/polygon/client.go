@@ -42,13 +42,14 @@ func (c *Client) ping(ctx context.Context) error {
 
 func (c *Client) Ping(ctx context.Context) error {
 	for {
-		if err := ctx.Err(); err != nil {
-			return err		
-		}
-
 		if err := c.ping(ctx); err != nil {
-			time.Sleep(time.Second)
-			continue
+			log.WithField("error", err).Error("Failed to ping, waiting 5 seconds")
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(5 * time.Second):
+				continue
+			}
 		}
 
 		return nil

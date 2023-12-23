@@ -57,7 +57,7 @@ func (m *Manager) SyncETCDToDB(ctx context.Context) ([]string, error) {
 		}
 	}
 
-	if err := m.etcd.InsertProducts(ctx, dtos); err != nil {
+	if err := m.etcd.UpsertProducts(ctx, dtos); err != nil {
 		return nil, err
 	}
 
@@ -116,14 +116,9 @@ func (m *Manager) PrepareTopicsBatch(ctx context.Context, connectorName string, 
 	}
 
 	if err := m.conf.CreateTopics(ctx, topicAll...); err != nil {
-		if errors.Is(err, kafka.ErrSomeOfTopicAlreadyExist) {
-			log.Warn("Topic already exists")
-		} else {
-			return errors.Wrap(err, "Failed to create topics")
-		}
-	} else {
-		log.Info("Topics are successfully created")
+		return errors.Wrap(err, "Failed to create topics")
 	}
+	log.Info("Topics are successfully created")
 
 	configs := make([]connect.ConnectorTopicConfig, len(topicAggs))
 	for i, topic := range topicAggs {

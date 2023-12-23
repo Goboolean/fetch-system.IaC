@@ -27,12 +27,26 @@ func main() {
 	}
 	defer cleanup()
 
-	if err := retriever.StoreKORStocks(ctx); err != nil {
-		log.Panic(errors.Wrap(err, "Failed to store KOR stocks"))
+	stored, err := retriever.CheckKORStockStored(ctx)
+	if err != nil {
+		log.Panic(errors.Wrap(err, "Failed to check KOR stock stored"))
 	}
 
-	if err := retriever.StoreUSAStocks(ctx); err != nil {
-		log.Panic(errors.Wrap(err, "Failed to store USA stocks"))
+	if !stored {
+		if err := retriever.StoreKORStocks(ctx); err != nil {
+			log.Panic(errors.Wrap(err, "Failed to store KOR stocks"))
+		}
+	}
+
+	stored, err = retriever.CheckUSAStockStored(ctx)
+	if err != nil {
+		log.Panic(errors.Wrap(err, "Failed to check USA stock stored"))
+	}
+
+	if !stored {
+		if err := retriever.StoreUSAStocks(ctx); err != nil {
+			log.Panic(errors.Wrap(err, "Failed to store USA stocks"))
+		}
 	}
 
 	log.Info("Application successfully finished")

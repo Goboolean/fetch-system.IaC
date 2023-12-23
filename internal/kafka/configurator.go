@@ -9,6 +9,7 @@ import (
 	"github.com/Goboolean/common/pkg/resolver"
 	"github.com/Goboolean/fetch-system.IaC/internal/util"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
+	log "github.com/sirupsen/logrus"
 )
 
 // Configurator has a role for making and deleting topic, checking topic exists, and getting topic list.
@@ -70,13 +71,14 @@ func (c *Configurator) ping(ctx context.Context) error {
 
 func (c *Configurator) Ping(ctx context.Context) error {
 	for {
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
 		if err := c.ping(ctx); err != nil {
-			time.Sleep(1 * time.Second)
-			continue
+			log.WithField("error", err).Error("Failed to ping, waiting 5 seconds")
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(5 * time.Second):
+				continue
+			}
 		}
 
 		return nil
@@ -84,15 +86,6 @@ func (c *Configurator) Ping(ctx context.Context) error {
 }
 
 func (c *Configurator) CreateTopic(ctx context.Context, topic string) error {
-
-	exists, err := c.TopicExists(ctx, topic)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		return fmt.Errorf("topic already exists")
-	}
 
 	topicInfo := kafka.TopicSpecification{
 		Topic:             topic,
@@ -106,11 +99,14 @@ func (c *Configurator) CreateTopic(ctx context.Context, topic string) error {
 	}
 
 	if err := result[0].Error; err.Code() != kafka.ErrNoError {
+		if err.Code() == kafka.ErrTopicAlreadyExists {
+			return nil
+		}
 		return fmt.Errorf(err.String())
 	}
-
 	return nil
 }
+
 
 func (c *Configurator) CreateTopics(ctx context.Context, topics ...string) error {
 
@@ -130,10 +126,12 @@ func (c *Configurator) CreateTopics(ctx context.Context, topics ...string) error
 
 	for _, r := range result {
 		if err := r.Error; err.Code() != kafka.ErrNoError {
-			return ErrSomeOfTopicAlreadyExist
+			if err.Code() == kafka.ErrTopicAlreadyExists {
+				continue
+			}
+			return fmt.Errorf(err.String())
 		}
 	}
-
 	return nil
 }
 
@@ -199,6 +197,29 @@ func (c *Configurator) TopicExists(ctx context.Context, topic string) (bool, err
 	detail.Error.Code()
 	return exists && detail.Topic != "", nil
 }
+
+func (c *Configurator) AllTopicExists(ctx context.Context, topics ...string) (bool, error) {
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		deadline = time.Now().Add(1 << 32)
+	}
+
+	metadata, err := c.client.GetMetadata(nil, true, int(time.Until(deadline).Milliseconds()))
+	if err != nil {
+		return false, err
+	}
+
+	for _, topic := range topics {
+		detail, exists := metadata.Topics[topic]
+		if !exists || detail.Topic == "" {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
 
 func (c *Configurator) GetTopicList(ctx context.Context) ([]string, error) {
 

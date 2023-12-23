@@ -1,4 +1,4 @@
-package retrieve_test
+package dbiniter_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Goboolean/fetch-system.IaC/cmd/wire"
-	"github.com/Goboolean/fetch-system.IaC/internal/retrieve"
+	"github.com/Goboolean/fetch-system.IaC/internal/dbiniter"
 	"github.com/Goboolean/fetch-system.IaC/pkg/db"
 	"github.com/stretchr/testify/assert"
 
@@ -18,11 +18,11 @@ import (
 
 var cleanups []func()
 
-var manager *retrieve.Manager
+var manager *dbiniter.Manager
 
 
 
-func SetupManager() *retrieve.Manager {
+func SetupManager() *dbiniter.Manager {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -43,7 +43,7 @@ func SetupManager() *retrieve.Manager {
 		panic(err)
 	}
 
-	return retrieve.New(polygon, db, kis)
+	return dbiniter.New(polygon, db, kis)
 }
 
 func Teardown() {
@@ -101,7 +101,7 @@ func TestStoreKORStocks(t *testing.T) {
 
 		tickerDetails, err := database.GetProductsByCondition(ctx, db.GetProductsByConditionParams{
 			Market: db.MarketSTOCK,
-			Platform: db.PlatformBUYCYCLE,
+			Platform: db.PlatformKIS,
 		})
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tickerDetails)

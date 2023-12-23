@@ -1,4 +1,4 @@
-package retrieve
+package dbiniter
 
 import (
 	"context"
@@ -90,6 +90,26 @@ func (m *Manager) GetAllUSATickerDetails(ctx context.Context) ([]*model.TickerDe
 }
 
 
+func (m *Manager) CheckUSAStockStored(ctx context.Context) (bool, error) {
+
+	count, err := m.db.CountProducts(ctx, db.CountProductsParams{
+		Platform: db.PlatformPOLYGON,
+		Market: db.MarketSTOCK,
+	})
+	if err != nil {
+		return false, errors.Wrap(err, "Failed to count products")
+	}
+
+	if count == 0 {
+		log.Info("USA stocks is not stored yet")
+		return false, nil
+	} else {
+		log.Info("Already stored USA stocks")
+		return true, nil
+	}
+}
+
+
 func (m *Manager) StoreUSAStocks(ctx context.Context) error {
 
 	details, err := m.GetAllUSATickerDetails(ctx)
@@ -118,6 +138,26 @@ func (m *Manager) StoreUSAStocks(ctx context.Context) error {
 }
 
 
+func (m *Manager) CheckKORStockStored(ctx context.Context) (bool, error) {
+
+	count, err := m.db.CountProducts(ctx, db.CountProductsParams{
+		Platform: db.PlatformKIS,
+		Market: db.MarketSTOCK,
+	})
+	if err != nil {
+		return false, errors.Wrap(err, "Failed to count products")
+	}
+
+	if count == 0 {
+		log.Info("KOR stocks is not stored yet")
+		return false, nil
+	} else {
+		log.Info("Already stored KOR stocks")
+		return true, nil
+	}
+}
+
+
 func (m *Manager) StoreKORStocks(ctx context.Context) error {
 
 	details, err := m.kis.ReadAllTickerDetalis()
@@ -133,7 +173,7 @@ func (m *Manager) StoreKORStocks(ctx context.Context) error {
 			Symbol: detail.Ticker,
 			Locale: db.LocaleKOR,
 			Market: db.MarketSTOCK,
-			Platform: db.PlatformBUYCYCLE,
+			Platform: db.PlatformKIS,
 			Name: pgtype.Text{
 				String: detail.Name,
 				Valid: (detail.Name != ""),

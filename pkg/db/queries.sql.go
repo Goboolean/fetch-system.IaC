@@ -11,6 +11,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countProducts = `-- name: CountProducts :one
+SELECT COUNT(*) FROM product_meta
+WHERE platform = $1 AND market = $2
+`
+
+type CountProductsParams struct {
+	Platform Platform
+	Market   Market
+}
+
+func (q *Queries) CountProducts(ctx context.Context, arg CountProductsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countProducts, arg.Platform, arg.Market)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const deleteAllProducts = `-- name: DeleteAllProducts :exec
 DELETE FROM product_meta
 `
@@ -148,4 +165,15 @@ type InsertProductsParams struct {
 	Market      Market
 	Name        pgtype.Text
 	Description pgtype.Text
+}
+
+const productExists = `-- name: ProductExists :one
+SELECT EXISTS(SELECT 1 FROM product_meta WHERE id = $1)
+`
+
+func (q *Queries) ProductExists(ctx context.Context, id string) (bool, error) {
+	row := q.db.QueryRow(ctx, productExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

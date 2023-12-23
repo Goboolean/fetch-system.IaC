@@ -165,7 +165,7 @@ func (c *Client) InsertOneProduct(ctx context.Context, p *Product) error {
 }
 
 
-var batchSize = 20
+var batchSize = 16
 
 func (c *Client) InsertProducts(ctx context.Context, p []*Product) error {
 	var sz = len(p)
@@ -215,6 +215,21 @@ func (c *Client) InsertBatchProducts(ctx context.Context, p []*Product) error {
 }
 
 func (c *Client) UpsertProducts(ctx context.Context, p []*Product) error {
+	var sz = len(p)
+
+	for i := 0; i < sz; i += batchSize {
+		j := i + batchSize
+		if j > sz {
+			j = sz
+		}
+		if err := c.UpsertBatchProducts(ctx, p[i:j]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Client) UpsertBatchProducts(ctx context.Context, p []*Product) error {
 
 	var ops []clientv3.Op
 

@@ -2,11 +2,13 @@ test-app:
 	docker compose -p fetch-system-iac -f ./deploy/docker-compose.test.yml up --attach server --build --abort-on-container-exit
 	docker compose -p fetch-system-iac -f ./deploy/docker-compose.test.yml down --remove-orphans
 
-build-retriever-app:
-	docker build -t fetch-system-retriever:latest -f ./deploy/Dockerfile.prepare .
-
+build-db-initer-app:
+	docker build -t registry.mulmuri.dev/fetch-system-db-initer:latest -f ./deploy/Dockerfile.dbiniter .
+	docker push registry.mulmuri.dev/fetch-system-db-initer:latest
 build-preparer-app:
-	docker build -t fetch-system-preparer:latest -f ./deploy/Dockerfile.retrieve .
+	docker build -t registry.mulmuri.dev/fetch-system-preparer:latest -f ./deploy/Dockerfile.preparer .
+	docker push registry.mulmuri.dev/fetch-system-preparer:latest
+	helm upgrade fetch-system ~/lab -n goboolean
 
 generate-proto:
 	@protoc --go_out=. ./api/protobuf/model.proto

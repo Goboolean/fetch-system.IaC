@@ -1,4 +1,4 @@
-package prepare
+package preparer
 
 import (
 	"context"
@@ -12,7 +12,6 @@ import (
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
-
 
 
 
@@ -39,12 +38,11 @@ func New(
 
 
 
-
 func (m *Manager) SyncETCDToDB(ctx context.Context) ([]string, error) {
 	
 	products, err := m.db.GetAllProducts(ctx)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to get products from db")
 	}
 	log.Infof("received number of %d products", len(products))
 
@@ -57,8 +55,8 @@ func (m *Manager) SyncETCDToDB(ctx context.Context) ([]string, error) {
 		}
 	}
 
-	if err := m.etcd.InsertProducts(ctx, dtos); err != nil {
-		return nil, err
+	if err := m.etcd.UpsertProducts(ctx, dtos); err != nil {
+		return nil, errors.Wrap(err, "Failed to upsert products to etcd")
 	}
 
 	var topics []string
@@ -70,7 +68,7 @@ func (m *Manager) SyncETCDToDB(ctx context.Context) ([]string, error) {
 }
 
 
-const batchSize = 500
+const batchSize = 100
 
 func (m *Manager) PrepareTopics(ctx context.Context, baseConnectorName string, topics []string) error {
 	log.Info("Preparing topics started")
@@ -82,13 +80,42 @@ func (m *Manager) PrepareTopics(ctx context.Context, baseConnectorName string, t
 		}
 
 		var connectorName = fmt.Sprintf("%s.[%d:%d]", baseConnectorName, i, end)
-		var connectorTasks = 10
+		var connectorTasks = 1
 
 		start := time.Now()
 		log.Infof("Preparing topics batch started: %s)", connectorName)
 
-		if err := m.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics[i:end]); err != nil {
-			return err
+		for {
+			var faildCount = 0
+			{
+				ctx, cancel := context.WithTimeout(ctx, time.Second*4)
+				defer cancel()
+		
+				if err := m.connect.Ping(ctx); err != nil {
+					faildCount++
+					log.WithFields(log.Fields{
+						"error": err,
+						"count": faildCount,
+					}).Warn("Failed to ping, waiting 10 seconds")
+		
+					select {
+					case <-ctx.Done():
+						return ctx.Err()
+					case <-time.After(10 * time.Second):
+						continue
+					}
+				}
+				if faildCount > 0 {
+					log.Info("Connection to connect is healthy, start creating connector")
+				}
+			}
+
+			if err := m.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics[i:end]); err != nil {
+				log.Error(errors.Wrap(err, "Failed to prepare topics batch, waiting 10 seconds"))
+				time.After(10 * time.Second)
+				continue
+			}
+			break
 		}
 
 		log.Infof("Preparing topics batch took: %s)", time.Since(start))
@@ -116,23 +143,9 @@ func (m *Manager) PrepareTopicsBatch(ctx context.Context, connectorName string, 
 	}
 
 	if err := m.conf.CreateTopics(ctx, topicAll...); err != nil {
-		if errors.Is(err, kafka.ErrSomeOfTopicAlreadyExist) {
-			log.Warn("Topic already exists")
-		} else {
-			return errors.Wrap(err, "Failed to create topics")
-		}
-	} else {
-		log.Info("Topics are successfully created")
+		return errors.Wrap(err, "Failed to create topics")
 	}
-
-	configs := make([]connect.ConnectorTopicConfig, len(topicAggs))
-	for i, topic := range topicAggs {
-		configs[i] = connect.ConnectorTopicConfig{
-			Topic:            topic,
-			Collection:       topic,
-			RotateIntervalMs: 100000,
-		}
-	}
+	log.Info("Topics are successfully created")
 
 	exists, err := m.connect.CheckConnectorExists(ctx, connectorName)
 	if err != nil {
@@ -142,6 +155,15 @@ func (m *Manager) PrepareTopicsBatch(ctx context.Context, connectorName string, 
 	if exists {
 		log.Warn("Connector already exists")
 		return nil
+	}
+
+	configs := make([]connect.ConnectorTopicConfig, len(topicAggs))
+	for i, topic := range topicAggs {
+		configs[i] = connect.ConnectorTopicConfig{
+			Topic:            topic,
+			Collection:       topic,
+			RotateIntervalMs: 100000,
+		}
 	}
 
 	if err := m.connect.CreateBulkTopicConnector(ctx, connectorName, connectorTasks, configs); err != nil {

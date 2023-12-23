@@ -102,6 +102,25 @@ func TestLoadDataOnInsertProductQuery(t *testing.T) {
 		t.Log("Elapsed time:", elasped)
 	})
 
+	t.Run("UpsertMasiveProducts", func(t *testing.T) {
+		products := generateProducts(10000)
+		start := time.Now()
+
+		for i := 0; i < len(products); i += count {
+			j := i + count
+			if j > len(products) {
+				j = len(products)
+			}
+			err := client.UpsertProducts(context.Background(), products[i:j])
+			assert.NoError(t, err)
+		}
+
+		elasped := time.Since(start)
+		t.Log("Elapsed time:", elasped)
+	})
+
+
+
 	t.Run("MeasureQueryTime: GetOne", func(t *testing.T) {
 		start := time.Now()
 

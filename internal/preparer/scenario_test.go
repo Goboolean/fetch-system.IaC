@@ -1,4 +1,4 @@
-package prepare_test
+package preparer_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/internal/connect"
 	"github.com/Goboolean/fetch-system.IaC/internal/etcd"
 	"github.com/Goboolean/fetch-system.IaC/internal/kafka"
-	"github.com/Goboolean/fetch-system.IaC/internal/prepare"
+	"github.com/Goboolean/fetch-system.IaC/internal/preparer"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +17,7 @@ import (
 
 func TestScenario(t *testing.T) {
 
-	var preparer *prepare.Manager
+	var preparer *preparer.Manager
 	var etcd *etcd.Client
 	var connect *connect.Client
 	var conf *kafka.Configurator

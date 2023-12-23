@@ -20,7 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type Trade struct {
+type TradeProtobuf struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -30,8 +30,8 @@ type Trade struct {
 	Timestamp int64   `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
-func (x *Trade) Reset() {
-	*x = Trade{}
+func (x *TradeProtobuf) Reset() {
+	*x = TradeProtobuf{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_protobuf_model_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -39,13 +39,13 @@ func (x *Trade) Reset() {
 	}
 }
 
-func (x *Trade) String() string {
+func (x *TradeProtobuf) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Trade) ProtoMessage() {}
+func (*TradeProtobuf) ProtoMessage() {}
 
-func (x *Trade) ProtoReflect() protoreflect.Message {
+func (x *TradeProtobuf) ProtoReflect() protoreflect.Message {
 	mi := &file_api_protobuf_model_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -57,33 +57,33 @@ func (x *Trade) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Trade.ProtoReflect.Descriptor instead.
-func (*Trade) Descriptor() ([]byte, []int) {
+// Deprecated: Use TradeProtobuf.ProtoReflect.Descriptor instead.
+func (*TradeProtobuf) Descriptor() ([]byte, []int) {
 	return file_api_protobuf_model_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Trade) GetPrice() float64 {
+func (x *TradeProtobuf) GetPrice() float64 {
 	if x != nil {
 		return x.Price
 	}
 	return 0
 }
 
-func (x *Trade) GetSize() int64 {
+func (x *TradeProtobuf) GetSize() int64 {
 	if x != nil {
 		return x.Size
 	}
 	return 0
 }
 
-func (x *Trade) GetTimestamp() int64 {
+func (x *TradeProtobuf) GetTimestamp() int64 {
 	if x != nil {
 		return x.Timestamp
 	}
 	return 0
 }
 
-type Aggregate struct {
+type AggregateProtobuf struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -96,8 +96,8 @@ type Aggregate struct {
 	Timestamp int64   `protobuf:"varint,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
-func (x *Aggregate) Reset() {
-	*x = Aggregate{}
+func (x *AggregateProtobuf) Reset() {
+	*x = AggregateProtobuf{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_api_protobuf_model_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -105,13 +105,13 @@ func (x *Aggregate) Reset() {
 	}
 }
 
-func (x *Aggregate) String() string {
+func (x *AggregateProtobuf) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Aggregate) ProtoMessage() {}
+func (*AggregateProtobuf) ProtoMessage() {}
 
-func (x *Aggregate) ProtoReflect() protoreflect.Message {
+func (x *AggregateProtobuf) ProtoReflect() protoreflect.Message {
 	mi := &file_api_protobuf_model_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -123,47 +123,47 @@ func (x *Aggregate) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Aggregate.ProtoReflect.Descriptor instead.
-func (*Aggregate) Descriptor() ([]byte, []int) {
+// Deprecated: Use AggregateProtobuf.ProtoReflect.Descriptor instead.
+func (*AggregateProtobuf) Descriptor() ([]byte, []int) {
 	return file_api_protobuf_model_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *Aggregate) GetOpen() float64 {
+func (x *AggregateProtobuf) GetOpen() float64 {
 	if x != nil {
 		return x.Open
 	}
 	return 0
 }
 
-func (x *Aggregate) GetClosed() float64 {
+func (x *AggregateProtobuf) GetClosed() float64 {
 	if x != nil {
 		return x.Closed
 	}
 	return 0
 }
 
-func (x *Aggregate) GetMin() float64 {
+func (x *AggregateProtobuf) GetMin() float64 {
 	if x != nil {
 		return x.Min
 	}
 	return 0
 }
 
-func (x *Aggregate) GetMax() float64 {
+func (x *AggregateProtobuf) GetMax() float64 {
 	if x != nil {
 		return x.Max
 	}
 	return 0
 }
 
-func (x *Aggregate) GetVolume() int64 {
+func (x *AggregateProtobuf) GetVolume() int64 {
 	if x != nil {
 		return x.Volume
 	}
 	return 0
 }
 
-func (x *Aggregate) GetTimestamp() int64 {
+func (x *AggregateProtobuf) GetTimestamp() int64 {
 	if x != nil {
 		return x.Timestamp
 	}
@@ -174,13 +174,14 @@ var File_api_protobuf_model_proto protoreflect.FileDescriptor
 
 var file_api_protobuf_model_proto_rawDesc = []byte{
 	0x0a, 0x18, 0x61, 0x70, 0x69, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x6d,
-	0x6f, 0x64, 0x65, 0x6c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x4f, 0x0a, 0x05, 0x54, 0x72,
-	0x61, 0x64, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x72, 0x69, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x01, 0x52, 0x05, 0x70, 0x72, 0x69, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x73, 0x69, 0x7a,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x12, 0x1c, 0x0a,
-	0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03,
-	0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x91, 0x01, 0x0a, 0x09,
-	0x41, 0x67, 0x67, 0x72, 0x65, 0x67, 0x61, 0x74, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6f, 0x70, 0x65,
+	0x6f, 0x64, 0x65, 0x6c, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x57, 0x0a, 0x0d, 0x54, 0x72,
+	0x61, 0x64, 0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x12, 0x14, 0x0a, 0x05, 0x70,
+	0x72, 0x69, 0x63, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x01, 0x52, 0x05, 0x70, 0x72, 0x69, 0x63,
+	0x65, 0x12, 0x12, 0x0a, 0x04, 0x73, 0x69, 0x7a, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x04, 0x73, 0x69, 0x7a, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61,
+	0x6d, 0x70, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74,
+	0x61, 0x6d, 0x70, 0x22, 0x99, 0x01, 0x0a, 0x11, 0x41, 0x67, 0x67, 0x72, 0x65, 0x67, 0x61, 0x74,
+	0x65, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x12, 0x12, 0x0a, 0x04, 0x6f, 0x70, 0x65,
 	0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x01, 0x52, 0x04, 0x6f, 0x70, 0x65, 0x6e, 0x12, 0x16, 0x0a,
 	0x06, 0x63, 0x6c, 0x6f, 0x73, 0x65, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x01, 0x52, 0x06, 0x63,
 	0x6c, 0x6f, 0x73, 0x65, 0x64, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x69, 0x6e, 0x18, 0x03, 0x20, 0x01,
@@ -209,8 +210,8 @@ func file_api_protobuf_model_proto_rawDescGZIP() []byte {
 
 var file_api_protobuf_model_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_api_protobuf_model_proto_goTypes = []interface{}{
-	(*Trade)(nil),     // 0: Trade
-	(*Aggregate)(nil), // 1: Aggregate
+	(*TradeProtobuf)(nil),     // 0: TradeProtobuf
+	(*AggregateProtobuf)(nil), // 1: AggregateProtobuf
 }
 var file_api_protobuf_model_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -227,7 +228,7 @@ func file_api_protobuf_model_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_api_protobuf_model_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Trade); i {
+			switch v := v.(*TradeProtobuf); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -239,7 +240,7 @@ func file_api_protobuf_model_proto_init() {
 			}
 		}
 		file_api_protobuf_model_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Aggregate); i {
+			switch v := v.(*AggregateProtobuf); i {
 			case 0:
 				return &v.state
 			case 1:

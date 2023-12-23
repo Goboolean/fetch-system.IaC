@@ -15,7 +15,6 @@ import (
 
 
 
-
 type Manager struct {
 	etcd    *etcd.Client
 	db      *db.Client
@@ -36,7 +35,6 @@ func New(
 			conf:    conf,
 		}
 }
-
 
 
 
@@ -88,12 +86,17 @@ func (m *Manager) PrepareTopics(ctx context.Context, baseConnectorName string, t
 		log.Infof("Preparing topics batch started: %s)", connectorName)
 
 		for {
+			var faildCount = 0
 			{
 				ctx, cancel := context.WithTimeout(ctx, time.Second*4)
 				defer cancel()
 		
 				if err := m.connect.Ping(ctx); err != nil {
-					log.WithField("error", err).Warn("Failed to ping, waiting 10 seconds")
+					faildCount++
+					log.WithFields(log.Fields{
+						"error": err,
+						"count": faildCount,
+					}).Warn("Failed to ping, waiting 10 seconds")
 		
 					select {
 					case <-ctx.Done():
@@ -102,7 +105,9 @@ func (m *Manager) PrepareTopics(ctx context.Context, baseConnectorName string, t
 						continue
 					}
 				}
-				log.Info("Connection to connect is healthy, start creating connector")
+				if faildCount > 0 {
+					log.Info("Connection to connect is healthy, start creating connector")
+				}
 			}
 
 			if err := m.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics[i:end]); err != nil {

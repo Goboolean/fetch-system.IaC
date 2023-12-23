@@ -87,8 +87,30 @@ func (m *Manager) PrepareTopics(ctx context.Context, baseConnectorName string, t
 		start := time.Now()
 		log.Infof("Preparing topics batch started: %s)", connectorName)
 
-		if err := m.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics[i:end]); err != nil {
-			return errors.Wrap(err, "Failed to prepare topics batch")
+		for {
+			{
+				ctx, cancel := context.WithTimeout(ctx, time.Second*4)
+				defer cancel()
+		
+				if err := m.connect.Ping(ctx); err != nil {
+					log.WithField("error", err).Warn("Failed to ping, waiting 10 seconds")
+		
+					select {
+					case <-ctx.Done():
+						return ctx.Err()
+					case <-time.After(10 * time.Second):
+						continue
+					}
+				}
+				log.Info("Connection to connect is healthy, start creating connector")
+			}
+
+			if err := m.PrepareTopicsBatch(ctx, connectorName, connectorTasks, topics[i:end]); err != nil {
+				log.Error(errors.Wrap(err, "Failed to prepare topics batch, waiting 10 seconds"))
+				time.After(10 * time.Second)
+				continue
+			}
+			break
 		}
 
 		log.Infof("Preparing topics batch took: %s)", time.Since(start))
@@ -119,24 +141,6 @@ func (m *Manager) PrepareTopicsBatch(ctx context.Context, connectorName string, 
 		return errors.Wrap(err, "Failed to create topics")
 	}
 	log.Info("Topics are successfully created")
-
-	for {
-		ctx, cancel := context.WithTimeout(ctx, time.Second*4)
-		defer cancel()
-
-		if err := m.connect.Ping(ctx); err != nil {
-			log.WithField("error", err).Error("Failed to ping, waiting 10 seconds")
-
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(10 * time.Second):
-				continue
-			}
-		}
-		log.Info("Connection to connect is healthy")
-		break
-	}
 
 	exists, err := m.connect.CheckConnectorExists(ctx, connectorName)
 	if err != nil {

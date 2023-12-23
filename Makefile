@@ -8,6 +8,7 @@ build-db-initer-app:
 build-preparer-app:
 	docker build -t registry.mulmuri.dev/fetch-system-preparer:latest -f ./deploy/Dockerfile.preparer .
 	docker push registry.mulmuri.dev/fetch-system-preparer:latest
+	helm upgrade fetch-system ~/lab -n goboolean
 
 generate-proto:
 	@protoc --go_out=. ./api/protobuf/model.proto

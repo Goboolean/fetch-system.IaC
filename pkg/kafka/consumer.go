@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/pkg/model"
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	log "github.com/sirupsen/logrus"
-	"google.golang.org/protobuf/proto"
 )
 
 type Consumer struct {
@@ -62,7 +62,7 @@ func NewConsumer(c *resolver.ConfigMap) (*Consumer, error) {
 	return instance, nil
 }
 
-func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error) {
+func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.TradeJson, error) {
 
 	topic := fmt.Sprintf("%s.t", productId)
 	if !model.IsSymbolValid(topic) {
@@ -73,7 +73,7 @@ func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error)
 		return nil, err
 	}
 
-	channel := make(chan *model.Trade, 100)
+	channel := make(chan *model.TradeJson, 100)
 
 	go func() {
 		c.wg.Add(1)
@@ -89,8 +89,8 @@ func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error)
 				continue
 			}
 
-			var trade model.Trade
-			if err := proto.Unmarshal(msg.Value, &trade); err != nil {
+			var trade model.TradeJson
+			if err := json.Unmarshal(msg.Value, &trade); err != nil {
 				log.WithFields(log.Fields{
 					"topic": *msg.TopicPartition.Topic,
 					"data":  msg.Value,
@@ -105,7 +105,7 @@ func (c *Consumer) SubscribeTrade(productId string) (<-chan *model.Trade, error)
 	return channel, nil
 }
 
-func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *model.Aggregate, error) {
+func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *model.AggregateJson, error) {
 
 	topic := fmt.Sprintf("%s.%s", productId, productType)
 	if !model.IsSymbolValid(topic) {
@@ -116,7 +116,7 @@ func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *
 		return nil, err
 	}
 
-	channel := make(chan *model.Aggregate, 100)
+	channel := make(chan *model.AggregateJson, 100)
 
 	go func() {
 		c.wg.Add(1)
@@ -132,8 +132,8 @@ func (c *Consumer) SubscribeAggs(productId string, productType string) (<-chan *
 				continue
 			}
 
-			var aggs model.Aggregate
-			if err := proto.Unmarshal(msg.Value, &aggs); err != nil {
+			var aggs model.AggregateJson
+			if err := json.Unmarshal(msg.Value, &aggs); err != nil {
 				log.WithFields(log.Fields{
 					"topic": *msg.TopicPartition.Topic,
 					"data":  msg.Value,

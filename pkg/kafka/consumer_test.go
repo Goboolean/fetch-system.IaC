@@ -2,13 +2,13 @@ package kafka
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/Goboolean/fetch-system.IaC/pkg/model"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/protobuf/proto"
 )
 
 
@@ -43,7 +43,7 @@ func TestConsumeAggs(t *testing.T) {
 	const count = 10
 	var received = 0
 
-	var ch <-chan *model.Aggregate
+	var ch <-chan *model.AggregateJson
 
 	t.Run("Subscribe", func(t *testing.T) {
 		var err error
@@ -58,7 +58,7 @@ func TestConsumeAggs(t *testing.T) {
 
 		for i := 0; i < count; i++ {
 			topic := fmt.Sprintf("%s.%s", productId, productType)
-			payload, err := proto.Marshal(&model.Aggregate{
+			payload, err := json.Marshal(&model.AggregateJson{
 				Timestamp: time.Now().UnixNano(),
 			})
 			assert.NoError(t, err)
@@ -105,7 +105,7 @@ func TestConsumeTrade(t *testing.T) {
 	const count = 10
 	var received = 0
 
-	var ch <-chan *model.Trade
+	var ch <-chan *model.TradeJson
 
 	t.Run("Subscribe", func(t *testing.T) {
 		var err error
@@ -120,7 +120,7 @@ func TestConsumeTrade(t *testing.T) {
 
 		for i := 0; i < count; i++ {
 			topic := fmt.Sprintf("%s.%s", productId, productType)
-			payload, err := proto.Marshal(&model.Trade{
+			payload, err := json.Marshal(&model.TradeJson{
 				Timestamp: time.Now().UnixNano(),
 			})
 			assert.NoError(t, err)

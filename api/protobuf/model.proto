@@ -3,13 +3,13 @@ syntax = "proto3";
 option go_package = "./pkg/model";
 option java_package = "io.goboolean.streams.serde";
 
-message Trade {
+message TradeProtobuf {
     double price     = 1;
     int64  size      = 2;
     int64  timestamp = 3;
 }
 
-message Aggregate {
+message AggregateProtobuf {
     double open      = 1;
     double closed    = 2;
     double min       = 3;

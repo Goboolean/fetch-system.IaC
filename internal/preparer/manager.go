@@ -52,6 +52,9 @@ func (m *Manager) SyncETCDToDB(ctx context.Context) ([]string, error) {
 		dtos[i] = &etcd.Product{
 			ID:     product.ID,
 			Symbol: product.Symbol,
+			Platform: string(product.Platform),
+			Locale:   string(product.Locale),
+			Market:   string(product.Market),
 		}
 	}
 

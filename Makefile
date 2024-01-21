@@ -11,7 +11,7 @@ build-preparer-app:
 	helm upgrade fetch-system ~/lab -n goboolean
 
 generate-proto:
-	@protoc --go_out=. ./api/protobuf/model.proto
+	@protocf --go_out=. ./api/protobuf/model.proto
 
 generate-sqlc:
 	@sqlc generate -f ./api/sql/sqlc.yml

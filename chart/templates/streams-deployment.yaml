@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-streams
+spec:
+  replicas: {{ default 1 .Values.streams.replicaCount}}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-streams
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-streams
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}-streams
+        image: "{{ .Values.streams.image.repository}}:{{ .Values.streams.image.tag }}"
+        imagePullPolicy: {{ default Always .Values.streams.image.imagePullPolicy }}
+        env:
+        - name: KAFKA_BOOTSTRAP_HOST
+          value: {{ .Values.streams.env.kafkaBootstrapHost }}
+        - name: ETCD_HOST
+          value: {{ .Values.streams.env.etcdHost }}
+        - name: OTEL_ENDPOINT
+          values: {{ .Values.streams.env.otelEndpoint }}

@@ -103,3 +103,35 @@ dbiniter:
     postgresqlPassword: ""
     postgresqlDatabase: goboolean
     polygonSecretKey: ""
+
+workercommon:
+  env:
+    etcdHost: fetch-system-etcd:2379
+    kafkaBootstrapHost: fetch-system-kafka:9092
+    otelEndpoint: fetch-system-opentelemetry-collector:4317
+
+worker:
+  polygon-stock:
+    name: polygon-stock
+    replicaCount: 1
+    image:
+      repository: registry.mulmuri.dev/fetch-system-worker
+      tag: latest
+      imagePullPolicy: Always
+    env:
+      polygonSecretKey: ""
+      platform: POLYGON
+      market: STOCK
+
+  kis-stock:
+    name: kis-stock
+    replicaCount: 0
+    image:
+      repository: registry.mulmuri.dev/fetch-system-worker
+      tag: latest
+      imagePullPolicy: Always
+    env:
+      kisAppKey: ""
+      kisSecretKey: ""
+      platform: KIS
+      market: STOCK

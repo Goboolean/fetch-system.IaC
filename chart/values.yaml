@@ -46,3 +46,47 @@ postgresql:
     username: goboolean
     password: password
     database: goboolean
+
+kafka-connect:
+  replicaCount: 2
+
+  extraVolumeMounts:
+  - name: plugin
+    mountPath: /usr/share/confluent-hub-components
+  extraVolumes:
+    - name: plugin
+      emptyDir: {}
+  initContainers:
+    - name: init-plugin
+      image: confluentinc/cp-kafka-connect:7.2.2
+      command:
+        - sh
+        - -c
+        - confluent-hub install mongodb/kafka-connect-mongodb:1.8.0 --no-prompt
+      volumeMounts:
+        - name: plugin
+          mountPath: /usr/share/confluent-hub-components
+
+  kafka:
+    create: false
+  schema-registry:
+    create: false
+  configMapPairs:
+    CONNECT_BOOTSTRAP_SERVERS: "fetch-system-kafka:9092"
+
+  livenessProbe:
+    initialDelaySeconds: 240
+    periodSeconds: 30
+    timeoutSeconds: 30
+  readinessProbe:
+    initialDelaySeconds: 240
+    periodSeconds: 30
+    timeoutSeconds: 30
+
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 3Gi
+    limits:
+      cpu: 1000m
+      memory: 3Gi

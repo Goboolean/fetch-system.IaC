@@ -1,9 +1,27 @@
 dependencies:
+- name: opentelemetry-collector
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.75.0
+- name: prometheus
+  repository: https://charts.bitnami.com/bitnami
+  version: 0.4.3
+- name: grafana
+  repository: https://charts.bitnami.com/bitnami
+  version: 9.6.1
 - name: mongodb
   repository: https://charts.bitnami.com/bitnami
   version: 14.3.0
 - name: kafka
   repository: https://charts.bitnami.com/bitnami
   version: 26.4.0
-digest: sha256:56c33e099dffd8ce1094d23f89384b78fcfed711375e3700b117cf6cd1875756
-generated: "2023-12-01T09:50:51.348414678Z"
+- name: etcd
+  repository: https://charts.bitnami.com/bitnami
+  version: 9.7.5
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 13.2.22
+- name: kafka-connect
+  repository: https://licenseware.github.io/charts/
+  version: 0.2.0
+digest: sha256:10e8ecfbe006ab31d015988918a1c7cd218f5f78a84637609a7d6b53ceaf9fe4
+generated: "2023-12-21T23:22:29.473716836+09:00"

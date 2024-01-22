@@ -145,3 +145,50 @@ streams:
     kafkaBootstrapHost: fetch-system-kafka:9092
     etcdHost: fetch-system-etcd:2379
     otelEndpoint: fetch-system-opentelemetry-collector:4317
+
+opentelemetry-collector:
+  mode: deployment
+
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      hostPort: 4317 
+      protocol: TCP
+      appProtocol: grpc
+    otlp-http:
+      enabled: false
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    metrics:
+      enabled: true
+      containerPort: 8889
+      servicePort: 8889
+      hostPort: 8889
+      protocol: TCP
+
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+    exporters:
+      prometheus:
+        endpoint: ${env:MY_POD_IP}:8889
+        namespace: default
+      debug:
+        verbosity: detailed
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: []
+          exporters: [prometheus, debug]

@@ -19,3 +19,6 @@ dependencies:
   - name: kafka-connect
     version: "0.2.0"
     repository: https://licenseware.github.io/charts/
+  - name: opentelemetry-collector
+    version: "0.75.0"
+    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"

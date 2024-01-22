@@ -4,12 +4,12 @@ mongodb:
     username: goboolean
     password: password
     database: goboolean-stock
-  architecture: replicaset
-  replicaSetName: rs0
-  replicas:
-    secondary: 2
-  arbiter:
-    enabled: false
+    replicaSetKey: password
+  
+  architecture: standalone
+  useStatefulSet: true
+  service:
+    type: ClusterIP
 
 kafka:
   auth:
@@ -24,3 +24,9 @@ kafka:
   kraft:
     enabled: true
     clusterId: fMCL8kv1SWm87L_Md-I2hg
+
+etcd:
+  replicaCount: 3
+  auth:
+    rbac:
+      create: False

@@ -3,9 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/Goboolean/common/pkg/resolver"
+	"github.com/jackc/pgx/v5"
+	log "github.com/sirupsen/logrus"
 )
 
 
@@ -53,12 +55,14 @@ func NewDB(c *resolver.ConfigMap) (*Client, error) {
 
 func (c *Client) Ping(ctx context.Context) error {
 	for {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-
 		if err := c.db.(*pgx.Conn).Ping(ctx); err != nil {
-			continue
+			log.WithField("error", err).Error("Failed to ping, waiting 5 seconds")
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(5 * time.Second):
+				continue
+			}
 		}
 
 		return nil

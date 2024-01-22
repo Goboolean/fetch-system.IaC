@@ -1,27 +1,28 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Chart.Name }}-db-initer"
+  name: "{{ .Chart.Name }}-dbiniter"
 spec:
   template:
     metadata:
-      name: "{{ .Chart.Name }}-db-initer"
+      name: "{{ .Chart.Name }}-dbiniter"
     spec:
       containers:
-      - name: db-initer
-        image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+      - name: dbiniter
+        image: "{{ .Values.dbiniter.image.repository }}:{{ .Values.dbiniter.image.tag }}"
+        imagePullPolicy: "{{ .Values.dbiniter.image.imagePullPolicy }}"
         env:
         - name: POSTGRES_HOST
-          value: "{{ .Values.db-initer.env.postgresqlHost }}"
+          value: "{{ .Values.dbiniter.env.postgresqlHost }}"
         - name: POSTGRES_PORT
-          value: "{{ .Values.db-initer.env.postgresqlPort }}"
+          value: "{{ .Values.dbiniter.env.postgresqlPort }}"
         - name: POSTGRES_USER
-          value: "{{ .Values.db-initer.env.postgresqlUser }}"
+          value: "{{ .Values.dbiniter.env.postgresqlUser }}"
         - name: POSTGRES_PASSWORD
-          value: "{{ .Values.db-initer.env.postgresqlPassword }}"
+          value: "{{ .Values.dbiniter.env.postgresqlPassword }}"
         - name: POSTGRES_DATABASE
-          value: "{{ .Values.db-initer.env.postgresqlDatabase }}"
+          value: "{{ .Values.dbiniter.env.postgresqlDatabase }}"
         - name: POLYGON_SECRET_KEY
-          value: "{{ .Values.db-initer.env.polygonSecretKey }}"
+          value: "{{ .Values.dbiniter.env.polygonSecretKey }}"
       restartPolicy: Never
   backoffLimit: 3

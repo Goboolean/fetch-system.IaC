@@ -2,25 +2,213 @@ mongodb:
   auth:
     rootPassword: golution
     username: goboolean
-    password: password
+    password: ""
     database: goboolean-stock
-  architecture: replicaset
-  replicaSetName: rs0
-  replicas:
-    secondary: 2
-  arbiter:
-    enabled: false
+    replicaSetKey: ""
+  
+  architecture: standalone
+  useStatefulSet: true
+  service:
+    type: ClusterIP
 
 kafka:
   auth:
     enabled: false
   sasl:
     interbroker:
-      password: password
+      password: ""
     controller:
-      password: password
+      password: ""
   broker:
     replicaCount: 3
   kraft:
     enabled: true
     clusterId: fMCL8kv1SWm87L_Md-I2hg
+
+etcd:
+  replicaCount: 3
+  auth:
+    rbac:
+      create: False
+
+postgresql:
+  primary:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    initdb:
+      scriptsConfigMap: postgresql-init-script
+  auth:
+    username: goboolean
+    password: ""
+    database: goboolean
+
+kafka-connect:
+  replicaCount: 2
+
+  extraVolumeMounts:
+  - name: plugin
+    mountPath: /usr/share/confluent-hub-components
+  extraVolumes:
+    - name: plugin
+      emptyDir: {}
+  initContainers:
+    - name: init-plugin
+      image: confluentinc/cp-kafka-connect:7.2.2
+      command:
+        - sh
+        - -c
+        - confluent-hub install mongodb/kafka-connect-mongodb:1.8.0 --no-prompt
+      volumeMounts:
+        - name: plugin
+          mountPath: /usr/share/confluent-hub-components
+
+  kafka:
+    create: false
+  schema-registry:
+    create: false
+  configMapPairs:
+    CONNECT_BOOTSTRAP_SERVERS: "fetch-system-kafka:9092"
+
+  livenessProbe:
+    initialDelaySeconds: 240
+    periodSeconds: 30
+    timeoutSeconds: 30
+  readinessProbe:
+    initialDelaySeconds: 240
+    periodSeconds: 30
+    timeoutSeconds: 30
+
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 3Gi
+    limits:
+      cpu: 1000m
+      memory: 3Gi
+
+dbiniter:
+  image:
+    repository: registry.mulmuri.dev/fetch-system-db-initer
+    tag: latest
+    imagePullPolicy: Always
+  env:
+    postgresqlHost: fetch-system-postgresql
+    postgresqlPort: 5432
+    postgresqlUser: goboolean
+    postgresqlPassword: ""
+    postgresqlDatabase: goboolean
+    polygonSecretKey: ""
+
+workercommon:
+  env:
+    etcdHost: fetch-system-etcd:2379
+    kafkaBootstrapHost: fetch-system-kafka:9092
+    otelEndpoint: fetch-system-opentelemetry-collector:4317
+
+worker:
+  polygon-stock:
+    name: polygon-stock
+    replicaCount: 1
+    image:
+      repository: registry.mulmuri.dev/fetch-system-worker
+      tag: latest
+      imagePullPolicy: Always
+    env:
+      polygonSecretKey: ""
+      platform: POLYGON
+      market: STOCK
+
+  kis-stock:
+    name: kis-stock
+    replicaCount: 0
+    image:
+      repository: registry.mulmuri.dev/fetch-system-worker
+      tag: latest
+      imagePullPolicy: Always
+    env:
+      kisAppKey: ""
+      kisSecretKey: ""
+      platform: KIS
+      market: STOCK
+
+streams:
+  image:
+    repository: registry.mulmuri.dev/fetch-system-streams
+    tag: latest
+    imagePullPolicy: Always
+  env:
+    kafkaBootstrapHost: fetch-system-kafka:9092
+    etcdHost: fetch-system-etcd:2379
+    otelEndpoint: fetch-system-opentelemetry-collector:4317
+
+opentelemetry-collector:
+  mode: deployment
+
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      hostPort: 4317 
+      protocol: TCP
+      appProtocol: grpc
+    otlp-http:
+      enabled: false
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    metrics:
+      enabled: true
+      containerPort: 8889
+      servicePort: 8889
+      hostPort: 8889
+      protocol: TCP
+
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+    exporters:
+      prometheus:
+        endpoint: ${env:MY_POD_IP}:8889
+        namespace: default
+      debug:
+        verbosity: detailed
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: []
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: []
+          exporters: [logging]
+        
+
+prometheus:
+  server:
+    extraScrapeConfigs:
+      - job_name: 'opentelemetry-collector'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ["fetch-system-opentelemetry-collector:8889"]
+
+grafana:
+  service:
+    type: LoadBalancer
+  admin:
+    user: admin
+    password: ""

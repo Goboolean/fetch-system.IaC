@@ -8,6 +8,6 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main cmd/prepare/main.go
+RUN go build -o main cmd/dbiniter/main.go
 
 CMD ["./main"]

@@ -1,0 +1,44 @@
+{{- range $key, $values := .Values.worker }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $values.name }}
+spec:
+  replicas: {{ default 0 $values.replicaCount}}
+  selector:
+    matchLabels:
+      app: {{ $values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $values.name }}
+    spec:
+      containers:
+      - name: {{ $values.name }}
+        image: "{{ $values.image.repository }}:{{ $values.image.tag }}"
+        imagePullPolicy: {{ $.Values.preparer.image.imagePullPolicy }}
+        env:
+        - name: POLYGON_SECRET_KEY
+          value: {{ default $.Values.workercommon.env.polygonSecretKey $values.env.polygonSecretKey }}
+        - name: KIS_APPKEY
+          value: {{ default $.Values.workercommon.env.kisAppKey $values.env.kisAppKey }}
+        - name: KIS_SECRET
+          value: {{ default $.Values.workercommon.env.kisSecret $values.env.kisSecretKey }}
+        - name: ETCD_HOST
+          value: {{ default $.Values.workercommon.env.etcdHost $values.env.etcdHost }}
+        - name: KAFKA_BOOTSTRAP_HOST
+          value: {{ default $.Values.workercommon.env.kafkaBootstrapHost $values.env.kafkaBootstrapHost }}
+        - name: PLATFORM
+          value: {{ $values.env.platform }}
+        - name: MARKET
+          value: {{ $values.env.market }}
+        - name: WORKER_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OTEL_ENDPOINT
+          value: {{ default $.Values.workercommon.env.otelEndpoint $values.env.otelEndpoint }}
+
+---
+{{- end }}

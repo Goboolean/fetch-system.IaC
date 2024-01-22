@@ -13,3 +13,6 @@ dependencies:
   - name: etcd
     version: "9.7.5"
     repository: "https://charts.bitnami.com/bitnami"
+  - name: postgresql
+    version: "13.2.22"
+    repository: "https://charts.bitnami.com/bitnami"

@@ -30,3 +30,19 @@ etcd:
   auth:
     rbac:
       create: False
+
+postgresql:
+  primary:
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+    initdb:
+      scriptsConfigMap: postgresql-init-script
+  auth:
+    username: goboolean
+    password: password
+    database: goboolean

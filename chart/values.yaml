@@ -191,7 +191,12 @@ opentelemetry-collector:
         metrics:
           receivers: [otlp]
           processors: []
-          exporters: [prometheus, debug]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: []
+          exporters: [logging]
+        
 
 prometheus:
   server:

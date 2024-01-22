@@ -192,3 +192,18 @@ opentelemetry-collector:
           receivers: [otlp]
           processors: []
           exporters: [prometheus, debug]
+
+prometheus:
+  server:
+    extraScrapeConfigs:
+      - job_name: 'opentelemetry-collector'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ["fetch-system-opentelemetry-collector:8889"]
+
+grafana:
+  service:
+    type: LoadBalancer
+  admin:
+    user: admin
+    password: ""

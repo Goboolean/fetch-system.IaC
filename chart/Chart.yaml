@@ -1,5 +1,5 @@
 apiVersion: v2
-name: fetch-system-chart
+name: fetch-system
 version: 0.1.0
 description: A Helm chart for fetch-system
 
@@ -22,3 +22,9 @@ dependencies:
   - name: opentelemetry-collector
     version: "0.75.0"
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+  - name: prometheus
+    version: "0.4.3"
+    repository: "https://charts.bitnami.com/bitnami"
+  - name: grafana
+    version: "9.6.1"
+    repository: "https://charts.bitnami.com/bitnami"

@@ -2,9 +2,9 @@ mongodb:
   auth:
     rootPassword: golution
     username: goboolean
-    password: password
+    password: ""
     database: goboolean-stock
-    replicaSetKey: password
+    replicaSetKey: ""
   
   architecture: standalone
   useStatefulSet: true
@@ -16,9 +16,9 @@ kafka:
     enabled: false
   sasl:
     interbroker:
-      password: password
+      password: ""
     controller:
-      password: password
+      password: ""
   broker:
     replicaCount: 3
   kraft:
@@ -44,7 +44,7 @@ postgresql:
       scriptsConfigMap: postgresql-init-script
   auth:
     username: goboolean
-    password: password
+    password: ""
     database: goboolean
 
 kafka-connect:
@@ -90,3 +90,16 @@ kafka-connect:
     limits:
       cpu: 1000m
       memory: 3Gi
+
+dbiniter:
+  image:
+    repository: registry.mulmuri.dev/fetch-system-db-initer
+    tag: latest
+    imagePullPolicy: Always
+  env:
+    postgresqlHost: fetch-system-postgresql
+    postgresqlPort: 5432
+    postgresqlUser: goboolean
+    postgresqlPassword: ""
+    postgresqlDatabase: goboolean
+    polygonSecretKey: ""

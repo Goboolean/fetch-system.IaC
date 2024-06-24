@@ -7,18 +7,18 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-
-	"github.com/Goboolean/fetch-system.IaC/pkg/influx"
 )
 
-func StructToPoint(in any) (influx.Point, error) {
+type InfluxDataFields map[string]interface{}
 
-	p := make(influx.Point)
+func StructToPoint(in any) (InfluxDataFields, error) {
+
+	p := make(InfluxDataFields)
 	err := structToPoint(reflect.ValueOf(in), "", p)
 	return p, err
 }
 
-func structToPoint(v reflect.Value, path string, p influx.Point) error {
+func structToPoint(v reflect.Value, path string, p InfluxDataFields) error {
 	t := v.Type()
 
 	for i := 0; i < t.NumField(); i++ {
@@ -59,7 +59,7 @@ func structToPoint(v reflect.Value, path string, p influx.Point) error {
 	return nil
 }
 
-func arrayToPoint(v reflect.Value, path string, p influx.Point) error {
+func arrayToPoint(v reflect.Value, path string, p InfluxDataFields) error {
 	for i := 0; i < v.Len(); i++ {
 		e := v.Index(i)
 		idxString := joinString(".", strconv.FormatInt(int64(i), 10))
@@ -76,7 +76,7 @@ func arrayToPoint(v reflect.Value, path string, p influx.Point) error {
 	return nil
 }
 
-func mapToPoint(v reflect.Value, path string, p influx.Point) error {
+func mapToPoint(v reflect.Value, path string, p InfluxDataFields) error {
 	iter := v.MapRange()
 
 	for iter.Next() {

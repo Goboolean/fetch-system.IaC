@@ -5,20 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Goboolean/fetch-system.IaC/internal/util/mapper"
-	"github.com/influxdata/influxdb-client-go/v2/api"
+	"github.com/Goboolean/fetch-system.IaC/pkg/influx/mapper"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 )
-
-func (d *DB) FetchAll(ctx context.Context, productID string, timeFrame string) (*api.QueryTableResult, error) {
-	return d.reader.Query(ctx, fmt.Sprintf(
-		`from(bucket:"%s")
-			|> range(start: 0) 
-			|> filter(fn: (r) => r._measurement == "%s.%s")
-			|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low"))
-			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,
-		tradeBucket, productID, timeFrame))
-}
 
 func (d *DB) FetchByTimeRange(
 	ctx context.Context,

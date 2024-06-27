@@ -14,28 +14,23 @@ func (d *DB) FetchByTimeRange(
 	productID string,
 	timeFrame string,
 	from time.Time,
-	to time.Time) (*api.QueryTableResult, error) {
-	return d.reader.Query(ctx, fmt.Sprintf(
+	to time.Time) ([]map[string]interface{}, error) {
+	queryRes, err := d.reader.Query(ctx, fmt.Sprintf(
 		`from(bucket:"%s")
 			|> range(start:%d, end:%d) 
 			|> filter(fn: (r) => r._measurement == "%s.%s")
 			|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low"))
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,
 		tradeBucket, from.Unix(), to.Unix(), productID, timeFrame))
+	if err != nil {
+		return nil, err
+	}
 
-}
-
-func (d *DB) FetchByNumberAndEndTime(ctx context.Context, productID string, timeFrame string, num int, end time.Time) (*api.QueryTableResult, error) {
-
-	return d.reader.Query(ctx, fmt.Sprintf(
-		`from(bucket:"%s")
-			|> range(start:0, end:%d) 
-			|> limit(n: %d)
-			|> filter(fn: (r) => r._measurement == "%s.%s")
-			|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low"))
-			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,
-		tradeBucket, end.Unix(), num, productID, timeFrame))
-
+	data := []map[string]interface{}{}
+	for queryRes.Next() {
+		data = append(data, queryRes.Record().Values())
+	}
+	return data, nil
 }
 
 func (d *DB) GetOrderEventWriter(taskID string, event OrderEvent) error {

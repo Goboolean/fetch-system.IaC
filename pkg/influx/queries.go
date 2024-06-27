@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Goboolean/fetch-system.IaC/pkg/influx/mapper"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 )
 
@@ -33,7 +32,7 @@ func (d *DB) FetchByTimeRange(
 	return data, nil
 }
 
-func (d *DB) GetOrderEventWriter(taskID string, event OrderEvent) error {
+func (d *DB) DispatchOrderEvent(taskID string, event OrderEvent) error {
 
 	d.orderWriter.WritePoint(write.NewPoint(
 		taskID,
@@ -50,17 +49,12 @@ func (d *DB) GetOrderEventWriter(taskID string, event OrderEvent) error {
 	return nil
 }
 
-func (d *DB) InsertAnnotation(taskID string, annotation any, createdAt time.Time) error {
-
-	f, err := mapper.StructToPoint(annotation)
-	if err != nil {
-		return err
-	}
+func (d *DB) DispatchAnnotation(taskID string, annotation map[string]interface{}, createdAt time.Time) error {
 
 	d.annotationWriter.WritePoint(write.NewPoint(
 		taskID,
 		map[string]string{},
-		f,
+		annotation,
 		createdAt,
 	))
 	return nil

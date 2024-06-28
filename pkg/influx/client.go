@@ -7,18 +7,14 @@ import (
 	"github.com/Goboolean/common/pkg/resolver"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-	log "github.com/sirupsen/logrus"
 )
-
-const tradeBucket = "minimal"
-const orderEventBucket = "order"
-const annotationBucket = "annotation"
 
 type DB struct {
 	client           influxdb2.Client
+	tradeBucket      string
 	reader           api.QueryAPI
-	orderWriter      api.WriteAPI
-	annotationWriter api.WriteAPI
+	orderWriter      api.WriteAPIBlocking
+	annotationWriter api.WriteAPIBlocking
 }
 
 func NewDB(c *resolver.ConfigMap) (*DB, error) {
@@ -39,30 +35,39 @@ func NewDB(c *resolver.ConfigMap) (*DB, error) {
 	}
 
 	client := influxdb2.NewClient(url, token)
-	instance := &DB{
-		client:           client,
-		orderWriter:      client.WriteAPI(org, orderEventBucket),
-		annotationWriter: client.WriteAPI(org, annotationBucket),
+
+	tradeBucket, err := c.GetStringKey("INFLUX_TRADE_BUCKET")
+	if err != nil {
+		return nil, fmt.Errorf("influx client: fail to create client %v", err)
+	}
+	if BucketExists(client, tradeBucket) {
+		return nil, fmt.Errorf("influx client: bucket %s does not exist", tradeBucket)
 	}
 
-	go func() {
-		for e := range instance.orderWriter.Errors() {
-			log.Error(e)
-		}
-	}()
+	orderEventBucket, err := c.GetStringKey("INFLUX_ORDER_EVENT_BUCKET")
+	if err != nil {
+		return nil, fmt.Errorf("influx client: fail to create client %v", err)
+	}
+	if BucketExists(client, tradeBucket) {
+		return nil, fmt.Errorf("influx client: bucket %s does not exist", orderEventBucket)
+	}
 
-	go func() {
-		for e := range instance.annotationWriter.Errors() {
-			log.Error(e)
-		}
-	}()
+	annotationBucket, err := c.GetStringKey("INFLUX_ANNOTATION_EVENT_BUCKET")
+	if err != nil {
+		return nil, fmt.Errorf("influx client: fail to create client %v", err)
+	}
+	if BucketExists(client, tradeBucket) {
+		return nil, fmt.Errorf("influx client: bucket %s does not exist", annotationBucket)
+	}
+
+	instance := &DB{
+		client:           client,
+		tradeBucket:      tradeBucket,
+		orderWriter:      client.WriteAPIBlocking(org, orderEventBucket),
+		annotationWriter: client.WriteAPIBlocking(org, annotationBucket),
+	}
 
 	return instance, nil
-}
-
-func (d *DB) Flush(ctx context.Context) {
-	d.orderWriter.Flush()
-	d.annotationWriter.Flush()
 }
 
 func (d *DB) Ping(ctx context.Context) error {
@@ -73,4 +78,10 @@ func (d *DB) Ping(ctx context.Context) error {
 func (d *DB) Close() error {
 	d.client.Close()
 	return nil
+}
+
+func BucketExists(c influxdb2.Client, bucket string) bool {
+	bucketApi := c.BucketsAPI()
+	_, err := bucketApi.FindBucketByName(context.Background(), bucket)
+	return err == nil
 }

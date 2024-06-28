@@ -20,7 +20,7 @@ func (d *DB) FetchByTimeRange(
 			|> filter(fn: (r) => r._measurement == "%s.%s")
 			|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low"))
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,
-		tradeBucket, from.Unix(), to.Unix(), productID, timeFrame))
+		d.tradeBucket, from.Unix(), to.Unix(), productID, timeFrame))
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +32,9 @@ func (d *DB) FetchByTimeRange(
 	return data, nil
 }
 
-func (d *DB) DispatchOrderEvent(taskID string, event OrderEvent) error {
+func (d *DB) InsertOrderEvent(ctx context.Context, taskID string, event OrderEvent) error {
 
-	d.orderWriter.WritePoint(write.NewPoint(
+	return d.orderWriter.WritePoint(ctx, write.NewPoint(
 		taskID,
 		map[string]string{},
 		map[string]interface{}{
@@ -45,17 +45,15 @@ func (d *DB) DispatchOrderEvent(taskID string, event OrderEvent) error {
 		},
 		event.CreatedAt,
 	))
-
-	return nil
 }
 
-func (d *DB) DispatchAnnotation(taskID string, annotation map[string]interface{}, createdAt time.Time) error {
+func (d *DB) InsertAnnotation(ctx context.Context, taskID string, annotation map[string]interface{}, createdAt time.Time) error {
 
-	d.annotationWriter.WritePoint(write.NewPoint(
+	return d.annotationWriter.WritePoint(ctx, write.NewPoint(
 		taskID,
 		map[string]string{},
 		annotation,
 		createdAt,
 	))
-	return nil
+
 }

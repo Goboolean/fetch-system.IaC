@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Goboolean/fetch-system.IaC/pkg/model"
-	"github.com/influxdata/influxdb-client-go/v2/api/write"
 )
 
 func (d *DB) FetchByTimeRange(
@@ -72,30 +71,4 @@ func extractFieldValueByKey(values map[string]interface{}, key string, target an
 
 	targetValue.Elem().Set(valueToSet)
 	return nil
-}
-
-func (d *DB) InsertOrderEvent(ctx context.Context, taskID string, event OrderEvent) error {
-
-	return d.orderWriter.WritePoint(ctx, write.NewPoint(
-		taskID,
-		map[string]string{},
-		map[string]interface{}{
-			"productID":         event.ProductID,
-			"proportionPercent": event.ProportionPercent,
-			"action":            event.Action,
-			"task":              event.Task,
-		},
-		event.CreatedAt,
-	))
-}
-
-func (d *DB) InsertAnnotation(ctx context.Context, taskID string, annotation map[string]interface{}, createdAt time.Time) error {
-
-	return d.annotationWriter.WritePoint(ctx, write.NewPoint(
-		taskID,
-		map[string]string{},
-		annotation,
-		createdAt,
-	))
-
 }

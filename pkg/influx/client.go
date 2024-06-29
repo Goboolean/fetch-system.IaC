@@ -10,11 +10,9 @@ import (
 )
 
 type DB struct {
-	client           influxdb2.Client
-	tradeBucket      string
-	reader           api.QueryAPI
-	orderWriter      api.WriteAPIBlocking
-	annotationWriter api.WriteAPIBlocking
+	client      influxdb2.Client
+	tradeBucket string
+	reader      api.QueryAPI
 }
 
 func NewDB(c *resolver.ConfigMap) (*DB, error) {
@@ -40,31 +38,14 @@ func NewDB(c *resolver.ConfigMap) (*DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("influx client: fail to create client %v", err)
 	}
-	if BucketExists(client, tradeBucket) {
+	if bucketExists(client, tradeBucket) {
 		return nil, fmt.Errorf("influx client: bucket %s does not exist", tradeBucket)
 	}
 
-	orderEventBucket, err := c.GetStringKey("INFLUX_ORDER_EVENT_BUCKET")
-	if err != nil {
-		return nil, fmt.Errorf("influx client: fail to create client %v", err)
-	}
-	if BucketExists(client, tradeBucket) {
-		return nil, fmt.Errorf("influx client: bucket %s does not exist", orderEventBucket)
-	}
-
-	annotationBucket, err := c.GetStringKey("INFLUX_ANNOTATION_EVENT_BUCKET")
-	if err != nil {
-		return nil, fmt.Errorf("influx client: fail to create client %v", err)
-	}
-	if BucketExists(client, tradeBucket) {
-		return nil, fmt.Errorf("influx client: bucket %s does not exist", annotationBucket)
-	}
-
 	instance := &DB{
-		client:           client,
-		tradeBucket:      tradeBucket,
-		orderWriter:      client.WriteAPIBlocking(org, orderEventBucket),
-		annotationWriter: client.WriteAPIBlocking(org, annotationBucket),
+		client:      client,
+		tradeBucket: tradeBucket,
+		reader:      client.QueryAPI(org),
 	}
 
 	return instance, nil
@@ -80,7 +61,7 @@ func (d *DB) Close() error {
 	return nil
 }
 
-func BucketExists(c influxdb2.Client, bucket string) bool {
+func bucketExists(c influxdb2.Client, bucket string) bool {
 	bucketApi := c.BucketsAPI()
 	_, err := bucketApi.FindBucketByName(context.Background(), bucket)
 	return err == nil

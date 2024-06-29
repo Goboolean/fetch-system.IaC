@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Goboolean/common/pkg/resolver"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 )
@@ -15,37 +14,37 @@ type DB struct {
 	reader      api.QueryAPI
 }
 
-func NewDB(c *resolver.ConfigMap) (*DB, error) {
+type Opts struct {
+	Url             string
+	Token           string
+	Org             string
+	TradeBucketName string
+}
 
-	url, err := c.GetStringKey("INFLUX_URL")
-	if err != nil {
-		return nil, fmt.Errorf("influx client: fail to create client %V", err)
+func NewDB(o *Opts) (*DB, error) {
+
+	if o.Url == "" {
+		return nil, fmt.Errorf("create influx db client: Required field Url is blank")
 	}
 
-	token, err := c.GetStringKey("INFLUX_TOKEN")
-	if err != nil {
-		return nil, fmt.Errorf("influx client: fail to create client %v", err)
+	if o.Token == "" {
+		return nil, fmt.Errorf("create influx db client: Required field Token is blank")
 	}
 
-	org, err := c.GetStringKey("INFLUX_ORG")
-	if err != nil {
-		return nil, fmt.Errorf("influx client: fail to create client %v", err)
+	if o.Org == "" {
+		return nil, fmt.Errorf("create influx db client: Required field Url is blank")
 	}
 
-	client := influxdb2.NewClient(url, token)
+	if o.TradeBucketName == "" {
+		return nil, fmt.Errorf("create influx db client: Required field TradeBucketName is blank")
+	}
 
-	tradeBucket, err := c.GetStringKey("INFLUX_TRADE_BUCKET")
-	if err != nil {
-		return nil, fmt.Errorf("influx client: fail to create client %v", err)
-	}
-	if bucketExists(client, tradeBucket) {
-		return nil, fmt.Errorf("influx client: bucket %s does not exist", tradeBucket)
-	}
+	client := influxdb2.NewClient(o.Url, o.Token)
 
 	instance := &DB{
 		client:      client,
-		tradeBucket: tradeBucket,
-		reader:      client.QueryAPI(org),
+		tradeBucket: o.TradeBucketName,
+		reader:      client.QueryAPI(o.Org),
 	}
 
 	return instance, nil

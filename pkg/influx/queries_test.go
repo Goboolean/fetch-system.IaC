@@ -3,6 +3,7 @@ package influx_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -17,18 +18,11 @@ var rawClient influxdb2.Client
 var testStockID = "stock.aapl.usa"
 var testTimeFrame = "1m"
 
-// var options = influx.Opts{
-// 	Url:             os.Getenv("INFLUXDB_URL"),
-// 	Token:           os.Getenv("INFLUXDB_TOKEN"),
-// 	TradeBucketName: os.Getenv("INFLUXDB_TRADE_BUCKET"),
-// 	Org:             os.Getenv("INFLUXDB_ORG"),
-// }
-
 var options = influx.Opts{
-	Url:             "http://localhost:8086",
-	Token:           "tokenforadmin",
-	TradeBucketName: "bucket",
-	Org:             "org",
+	Url:             os.Getenv("INFLUXDB_URL"),
+	Token:           os.Getenv("INFLUXDB_TOKEN"),
+	TradeBucketName: os.Getenv("INFLUXDB_TRADE_BUCKET"),
+	Org:             os.Getenv("INFLUXDB_ORG"),
 }
 
 func TestMain(m *testing.M) {

@@ -11,7 +11,6 @@ services:
       - kafka-connect
       - postgresql
       - etcd
-      - influxdb
     environment:
       - MONGODB_CONNECTION_URI=mongodb://goboolean:password@mongodb-primary:27017/goboolean-stock
       - MONGODB_DATABASE=goboolean-stock
@@ -23,10 +22,6 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DATABASE=goboolean
       - ETCD_HOST=etcd:2379
-      - INFLUXDB_URL=http://influxdb:8086
-      - INFLUXDB_ORG=org
-      - INFLUXDB_TRADE_BUCKET=bucket
-      - INFLUXDB_TOKEN=tokenforadmin
     env_file:
       - .env
 
@@ -48,7 +43,7 @@ services:
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
       # Kafka settings
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
-      - "ALLOW_PLAINTEXT_LISTENER=yes"
+      - "ALLOW_PLAINTEXT_LISTENER=yes" 
       - "listeners=PLAINTEXT://0.0.0.0/0"
       - "advertised.listeners=PLAINTEXT://10.178.0.3:9092"
 
@@ -80,7 +75,7 @@ services:
       - MONGODB_USERNAME=goboolean
       - MONGODB_PASSWORD=password
       - MONGODB_DATABASE=goboolean-stock
-      - ALLOW_EMPTY_PASSWORD=yes
+      - ALLOW_EMPTY_PASSWORD=yes 
 
   mongodb-arbiter:
     image: 'bitnami/mongodb:latest'
@@ -144,14 +139,3 @@ services:
     ports:
       - "2379"
       - "2380"
-  influxdb:
-    image: influxdb:latest
-    ports:
-      - 8086:8086
-    environment:
-      DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: admin
-      DOCKER_INFLUXDB_INIT_PASSWORD: password
-      DOCKER_INFLUXDB_INIT_ORG: org
-      DOCKER_INFLUXDB_INIT_BUCKET: bucket
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: tokenforadmin

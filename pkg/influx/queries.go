@@ -15,19 +15,20 @@ func (d *DB) FetchByTimeRange(
 	timeFrame string,
 	from time.Time,
 	to time.Time) ([]*model.StockAggregate, error) {
-	queryRes, err := d.reader.Query(ctx, fmt.Sprintf(
+	q := fmt.Sprintf(
 		`from(bucket:"%s")
-			|> range(start:%d, stop:%d) 
-			|> filter(fn: (r) => r._measurement == "%s.%s")
-			|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low"))
-			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,
-		d.tradeBucket, from.Unix(), to.Unix(), productID, timeFrame))
+				|> range(start:%d, stop:%d) 
+				|> filter(fn: (r) => r._measurement == "%s.%s")
+				|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low" or r.field == "volume"))
+				|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,
+		d.tradeBucket, from.Unix(), to.Unix(), productID, timeFrame)
+	queryRes, err := d.reader.Query(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 
 	// When query result is empty but error is not occurred
-	if queryRes.Record() == nil {
+	if queryRes == nil {
 		return nil, nil
 	}
 
@@ -35,11 +36,22 @@ func (d *DB) FetchByTimeRange(
 	for queryRes.Next() {
 		aggregate := &model.StockAggregate{}
 
-		extractFieldValueByKey(queryRes.Record().Values(), "open", &aggregate.Open)
-		extractFieldValueByKey(queryRes.Record().Values(), "close", &aggregate.Close)
-		extractFieldValueByKey(queryRes.Record().Values(), "high", &aggregate.High)
-		extractFieldValueByKey(queryRes.Record().Values(), "low", &aggregate.Low)
-		extractFieldValueByKey(queryRes.Record().Values(), "_time", &aggregate.Time)
+		if err := extractFieldValueByKey(queryRes.Record().Values(), "open", &aggregate.Open); err != nil {
+			fmt.Printf(`extracting field: can't extract "open": %v\n`, err)
+		}
+		if err := extractFieldValueByKey(queryRes.Record().Values(), "close", &aggregate.Close); err != nil {
+			fmt.Printf(`extracting field: can't extract "close": %v\n`, err)
+		}
+		if err := extractFieldValueByKey(queryRes.Record().Values(), "high", &aggregate.High); err != nil {
+			fmt.Printf(`extracting field: can't extract "high": %v\n`, err)
+		}
+		if err := extractFieldValueByKey(queryRes.Record().Values(), "low", &aggregate.Low); err != nil {
+			fmt.Printf(`extracting field: can't extract "low": %v\n`, err)
+		}
+		if err := extractFieldValueByKey(queryRes.Record().Values(), "_time", &aggregate.Time); err != nil {
+			fmt.Printf(`extracting field: can't extract "_time": %v\n`, err)
+		}
+
 		data = append(data, aggregate)
 	}
 

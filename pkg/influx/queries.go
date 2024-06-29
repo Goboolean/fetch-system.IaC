@@ -17,7 +17,7 @@ func (d *DB) FetchByTimeRange(
 	to time.Time) ([]*model.StockAggregate, error) {
 	queryRes, err := d.reader.Query(ctx, fmt.Sprintf(
 		`from(bucket:"%s")
-			|> range(start:%d, end:%d) 
+			|> range(start:%d, stop:%d) 
 			|> filter(fn: (r) => r._measurement == "%s.%s")
 			|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low"))
 			|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,

@@ -37,19 +37,22 @@ func (d *DB) FetchByTimeRange(
 		aggregate := &model.StockAggregate{}
 
 		if err := extractFieldValueByKey(queryRes.Record().Values(), "open", &aggregate.Open); err != nil {
-			fmt.Printf(`extracting field: can't extract "open": %v\n`, err)
+			return nil, fmt.Errorf(`extracting field: can't extract "open": %w`, err)
 		}
 		if err := extractFieldValueByKey(queryRes.Record().Values(), "close", &aggregate.Close); err != nil {
-			fmt.Printf(`extracting field: can't extract "close": %v\n`, err)
+			return nil, fmt.Errorf(`extracting field: can't extract "close": %v\n`, err)
 		}
 		if err := extractFieldValueByKey(queryRes.Record().Values(), "high", &aggregate.High); err != nil {
-			fmt.Printf(`extracting field: can't extract "high": %v\n`, err)
+			return nil, fmt.Errorf(`extracting field: can't extract "high": %v\n`, err)
 		}
 		if err := extractFieldValueByKey(queryRes.Record().Values(), "low", &aggregate.Low); err != nil {
-			fmt.Printf(`extracting field: can't extract "low": %v\n`, err)
+			return nil, fmt.Errorf(`extracting field: can't extract "low": %v\n`, err)
+		}
+		if err := extractFieldValueByKey(queryRes.Record().Values(), "volume", &aggregate.Time); err != nil {
+			return nil, fmt.Errorf(`extracting field: can't extract "volume": %v\n`, err)
 		}
 		if err := extractFieldValueByKey(queryRes.Record().Values(), "_time", &aggregate.Time); err != nil {
-			fmt.Printf(`extracting field: can't extract "_time": %v\n`, err)
+			return nil, fmt.Errorf(`extracting field: can't extract "_time": %v\n`, err)
 		}
 
 		data = append(data, aggregate)

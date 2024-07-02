@@ -3,6 +3,7 @@ test-package:
 	docker compose -p $(PROJECT_NAME) -f ./deploy/docker-compose.test.yml build
 	docker compose -p $(PROJECT_NAME) -f ./deploy/docker-compose.test.yml \
 	run server go test $(TEST_DIR)
+	docker compose -p $(PROJECT_NAME) -f ./deploy/docker-compose.test.yml down --remove-orphans
 
 test-app:
 	docker compose -p $(PROJECT_NAME) -f ./deploy/docker-compose.test.yml up --attach server --build --abort-on-container-exit

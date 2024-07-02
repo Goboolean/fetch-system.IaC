@@ -106,14 +106,14 @@ func TestFetchByTimeRange(t *testing.T) {
 		for i := 0; i < 60; i++ {
 			writer.WritePoint(
 				write.NewPoint(
-					fmt.Sprintf("%s.%s", testStockID, "1m"),
+					fmt.Sprintf("%s.%s", testStockID, testTimeFrame),
 					map[string]string{},
 					map[string]interface{}{
 						"start":  float64(1.0),
 						"stop":   float64(2.0),
 						"high":   float64(3.0),
 						"low":    float64(4.0),
-						"volume": int64(4),
+						"volume": float64(4),
 					},
 					start.Add(time.Duration(i)*time.Second),
 				),
@@ -125,7 +125,7 @@ func TestFetchByTimeRange(t *testing.T) {
 
 		aggregates, err := testClient.FetchByTimeRange(ctx,
 			testStockID,
-			"1m",
+			testTimeFrame,
 			start.Add(-5*time.Second),
 			start.Add(-1*time.Second))
 
@@ -136,7 +136,6 @@ func TestFetchByTimeRange(t *testing.T) {
 	t.Run("from과 to가 저장된 데이터를 포함하는 경우,"+
 		"알맞은 개수의 데이터가 있어야 하고 에러가 없어야 한다", func(t *testing.T) {
 		//arrange
-
 		RecreateBucket(rawClient, options.Org, options.TradeBucketName)
 		writer := rawClient.WriteAPIBlocking(options.Org, options.TradeBucketName)
 		start := time.Now()
@@ -144,14 +143,33 @@ func TestFetchByTimeRange(t *testing.T) {
 			writer.WritePoint(
 				context.Background(),
 				write.NewPoint(
-					fmt.Sprintf("%s.%s", testStockID, "1m"),
+					fmt.Sprintf("%s.%s", testStockID, testTimeFrame),
 					map[string]string{},
 					map[string]interface{}{
 						"open":   float64(1.0),
 						"close":  float64(2.0),
 						"high":   float64(3.0),
 						"low":    float64(4.0),
-						"volume": int64(4),
+						"volume": float64(4),
+					},
+					start.Add(time.Duration(i)*time.Second),
+				),
+			)
+		}
+		//act
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(100*time.Second))
+		defer cancel()
+
+		aggregates, err := testClient.FetchByTimeRange(ctx,
+			testStockID,
+			testTimeFrame,
+			start,
+			start.Add(30*time.Second),
+		)
+
+		assert.NoError(t, err)
+		assert.Len(t, aggregates, 30)
+	})
 					},
 					start.Add(time.Duration(i)*time.Second),
 				),

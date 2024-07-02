@@ -170,6 +170,24 @@ func TestFetchByTimeRange(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Len(t, aggregates, 30)
 	})
+
+	t.Run("필수 필드가 빠졌을 때,에러가 발생해야 한다.", func(t *testing.T) {
+		//arrange
+
+		RecreateBucket(rawClient, options.Org, options.TradeBucketName)
+		writer := rawClient.WriteAPIBlocking(options.Org, options.TradeBucketName)
+		start := time.Now()
+		for i := 0; i < 60; i++ {
+			writer.WritePoint(
+				context.Background(),
+				write.NewPoint(
+					fmt.Sprintf("%s.%s", testStockID, testTimeFrame),
+					map[string]string{},
+					map[string]interface{}{
+						"open":  float64(1.0),
+						"close": float64(2.0),
+						"high":  float64(3.0),
+						"low":   float64(4.0),
 					},
 					start.Add(time.Duration(i)*time.Second),
 				),
@@ -187,7 +205,7 @@ func TestFetchByTimeRange(t *testing.T) {
 			start.Add(30*time.Second),
 		)
 
-		assert.NoError(t, err)
-		assert.Len(t, aggregates, 30)
+		assert.Error(t, err)
+		assert.Len(t, aggregates, 0)
 	})
 }

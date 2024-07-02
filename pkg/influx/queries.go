@@ -15,14 +15,13 @@ func (d *DB) FetchByTimeRange(
 	timeFrame string,
 	from time.Time,
 	to time.Time) ([]*model.StockAggregate, error) {
-	q := fmt.Sprintf(
+	queryRes, err := d.reader.Query(ctx, fmt.Sprintf(
 		`from(bucket:"%s")
 				|> range(start:%d, stop:%d) 
 				|> filter(fn: (r) => r._measurement == "%s.%s")
-				|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low" or r.field == "volume"))
+				|> filter(fn: (r) => (r._field == "open" or r._field == "close" or r._field == "high" or r._field == "low" or r._field == "volume"))
 				|> pivot(rowKey:["_time"], columnKey: ["_field"], valueColumn: "_value")`,
-		d.tradeBucket, from.Unix(), to.Unix(), productID, timeFrame)
-	queryRes, err := d.reader.Query(ctx, q)
+		d.tradeBucket, from.Unix(), to.Unix(), productID, timeFrame))
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +47,7 @@ func (d *DB) FetchByTimeRange(
 		if err := extractFieldValueByKey(queryRes.Record().Values(), "low", &aggregate.Low); err != nil {
 			return nil, fmt.Errorf(`extracting field: can't extract "low": %v\n`, err)
 		}
-		if err := extractFieldValueByKey(queryRes.Record().Values(), "volume", &aggregate.Time); err != nil {
+		if err := extractFieldValueByKey(queryRes.Record().Values(), "volume", &aggregate.Volume); err != nil {
 			return nil, fmt.Errorf(`extracting field: can't extract "volume": %v\n`, err)
 		}
 		if err := extractFieldValueByKey(queryRes.Record().Values(), "_time", &aggregate.Time); err != nil {

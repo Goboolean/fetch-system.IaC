@@ -209,3 +209,141 @@ func TestFetchByTimeRange(t *testing.T) {
 		assert.Len(t, aggregates, 0)
 	})
 }
+
+func TestFetchLimitedTradeAfter(t *testing.T) {
+	t.Run("빈 bucket에 쿼리를 요청한 경우,"+
+		"data가 비어있어야 하고 에러가 없어야 한다.", func(t *testing.T) {
+		//arrange
+		RecreateBucket(rawClient, options.Org, options.TradeBucketName)
+		//act
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(1*time.Second))
+		now := time.Now()
+
+		defer cancel()
+		aggregates, err := testClient.FetchLimitedTradeAfter(ctx, testStockID, "1m", now.Add(-5*60*time.Second), 10)
+		assert.NoError(t, err)
+		assert.Len(t, aggregates, 0)
+	})
+
+	t.Run("가져오려는 데이터보다 더 많은 데이터가 저장됐을 때, 원하는 만큼 데이터를 가져와야 한다.", func(t *testing.T) {
+		//arrange
+
+		RecreateBucket(rawClient, options.Org, options.TradeBucketName)
+		writer := rawClient.WriteAPIBlocking(options.Org, options.TradeBucketName)
+
+		storeNum := 60
+		storeInterval := time.Second
+		start := time.Now().Add(time.Duration(-storeNum) * storeInterval)
+		for i := 0; i < storeNum; i++ {
+			writer.WritePoint(
+				context.Background(),
+				write.NewPoint(
+					fmt.Sprintf("%s.%s", testStockID, testTimeFrame),
+					map[string]string{},
+					map[string]interface{}{
+						"open":   float64(1.0),
+						"close":  float64(2.0),
+						"high":   float64(3.0),
+						"low":    float64(4.0),
+						"volume": float64(4),
+					},
+					start.Add(time.Duration(i)*storeInterval),
+				),
+			)
+		}
+		//act
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(100*time.Second))
+		defer cancel()
+
+		aggregates, err := testClient.FetchLimitedTradeAfter(ctx,
+			testStockID,
+			testTimeFrame,
+			start,
+			30,
+		)
+
+		assert.NoError(t, err)
+		assert.Len(t, aggregates, 30)
+	})
+
+	t.Run("가져오려는 데이터보다 더 적은 데이터가 저장됐을 때, 저장된 만큼 데이터를 가져와야 한다.", func(t *testing.T) {
+		//arrange
+		RecreateBucket(rawClient, options.Org, options.TradeBucketName)
+		writer := rawClient.WriteAPIBlocking(options.Org, options.TradeBucketName)
+		storeNum := 20
+		storeInterval := time.Second
+		start := time.Now().Add(time.Duration(-storeNum) * storeInterval)
+		for i := 0; i < storeNum; i++ {
+			writer.WritePoint(
+				context.Background(),
+				write.NewPoint(
+					fmt.Sprintf("%s.%s", testStockID, testTimeFrame),
+					map[string]string{},
+					map[string]interface{}{
+						"open":   float64(1.0),
+						"close":  float64(2.0),
+						"high":   float64(3.0),
+						"low":    float64(4.0),
+						"volume": float64(4),
+					},
+					start.Add(time.Duration(i)*storeInterval),
+				),
+			)
+		}
+
+		//act
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(100*time.Second))
+		defer cancel()
+
+		aggregates, err := testClient.FetchLimitedTradeAfter(ctx,
+			testStockID,
+			testTimeFrame,
+			start,
+			30,
+		)
+
+		assert.NoError(t, err)
+		assert.Len(t, aggregates, 20)
+	})
+
+	t.Run("필수 필드가 빠졌을 때,에러가 발생해야 한다.", func(t *testing.T) {
+		//arrange
+
+		RecreateBucket(rawClient, options.Org, options.TradeBucketName)
+
+		writer := rawClient.WriteAPIBlocking(options.Org, options.TradeBucketName)
+		storeNum := 60
+		storeInterval := time.Second
+		start := time.Now().Add(-time.Duration(storeNum) * storeInterval)
+		for i := 0; i < storeNum; i++ {
+			writer.WritePoint(
+				context.Background(),
+				write.NewPoint(
+					fmt.Sprintf("%s.%s", testStockID, testTimeFrame),
+					map[string]string{},
+					map[string]interface{}{
+						"close":  float64(2.0),
+						"high":   float64(3.0),
+						"low":    float64(4.0),
+						"volume": float64(4),
+					},
+					start.Add(time.Duration(i)*storeInterval),
+				),
+			)
+		}
+
+		//act
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(100*time.Second))
+		defer cancel()
+
+		aggregates, err := testClient.FetchLimitedTradeAfter(ctx,
+			testStockID,
+			"1m",
+			start,
+			30,
+		)
+
+		assert.Error(t, err)
+		assert.Len(t, aggregates, 0)
+	})
+}

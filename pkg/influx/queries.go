@@ -28,7 +28,7 @@ func (d *DB) FetchByTimeRange(
 
 	// When query result is empty but error is not occurred
 	if queryRes == nil {
-		return nil, nil
+		return make([]*model.StockAggregate, 0), nil
 	}
 
 	data := []*model.StockAggregate{}
@@ -86,7 +86,7 @@ func (d *DB) FetchLimitedTradeAfter(
 
 	// When query result is empty but error is not occurred
 	if queryRes == nil {
-		return nil, nil
+		return make([]*model.StockAggregate, 0), nil
 	}
 
 	data := []*model.StockAggregate{}

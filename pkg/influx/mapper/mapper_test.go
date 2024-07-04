@@ -3,7 +3,7 @@ package mapper_test
 import (
 	"testing"
 
-	"github.com/Goboolean/fetch-system.IaC/internal/util/mapper"
+	"github.com/Goboolean/fetch-system.IaC/pkg/influx/mapper"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -15,7 +15,7 @@ type DB struct {
 }
 
 type Opts struct {
-	Url             string
+	URL             string
 	Token           string
 	Org             string
 	TradeBucketName string
@@ -23,7 +23,7 @@ type Opts struct {
 
 func NewDB(o *Opts) (*DB, error) {
 
-	if o.Url == "" {
+	if o.URL == "" {
 		return nil, fmt.Errorf("create influx db client: Required field Url is blank")
 	}
 
@@ -39,7 +39,7 @@ func NewDB(o *Opts) (*DB, error) {
 		return nil, fmt.Errorf("create influx db client: Required field TradeBucketName is blank")
 	}
 
-	client := influxdb2.NewClient(o.Url, o.Token)
+	client := influxdb2.NewClient(o.URL, o.Token)
 
 	instance := &DB{
 		client:      client,

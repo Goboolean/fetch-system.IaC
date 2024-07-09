@@ -19,7 +19,7 @@ var testStockID = "stock.aapl.usa"
 var testTimeFrame = "1m"
 
 var options = influx.Opts{
-	Url:             os.Getenv("INFLUXDB_URL"),
+	URL:             os.Getenv("INFLUXDB_URL"),
 	Token:           os.Getenv("INFLUXDB_TOKEN"),
 	TradeBucketName: os.Getenv("INFLUXDB_TRADE_BUCKET"),
 	Org:             os.Getenv("INFLUXDB_ORG"),
@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	rawClient = influxdb2.NewClient(options.Url, options.Token)
+	rawClient = influxdb2.NewClient(options.URL, options.Token)
 	err = createBucketIfNotExits(rawClient, options.Org, options.TradeBucketName)
 	if err != nil {
 		panic(err)
@@ -266,6 +266,47 @@ func TestFetchLimitedTradeAfter(t *testing.T) {
 		assert.Len(t, aggregates, 30)
 	})
 
+	t.Run("가져오려는 데이터보다 더 많은 데이터가 저장됐고 처음 저장된 시점보다 과거 시점에서 데이터를 요청해도,"+
+		"원하는 만큼 데이터를 가져와야 한다.", func(t *testing.T) {
+		//arrange
+
+		RecreateBucket(rawClient, options.Org, options.TradeBucketName)
+		writer := rawClient.WriteAPIBlocking(options.Org, options.TradeBucketName)
+
+		storeNum := 100
+		storeInterval := time.Second
+		start := time.Now().Add(time.Duration(-storeNum) * storeInterval)
+		for i := 0; i < storeNum; i++ {
+			writer.WritePoint(
+				context.Background(),
+				write.NewPoint(
+					fmt.Sprintf("%s.%s", testStockID, testTimeFrame),
+					map[string]string{},
+					map[string]interface{}{
+						"open":   float64(1.0),
+						"close":  float64(2.0),
+						"high":   float64(3.0),
+						"low":    float64(4.0),
+						"volume": float64(4),
+					},
+					start.Add(time.Duration(i)*storeInterval),
+				),
+			)
+		}
+		//act
+		ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(100*time.Second))
+		defer cancel()
+
+		aggregates, err := testClient.FetchLimitedTradeAfter(ctx,
+			testStockID,
+			testTimeFrame,
+			start.Add(-10*time.Second),
+			30,
+		)
+
+		assert.NoError(t, err)
+		assert.Len(t, aggregates, 30)
+	})
 	t.Run("가져오려는 데이터보다 더 적은 데이터가 저장됐을 때, 저장된 만큼 데이터를 가져와야 한다.", func(t *testing.T) {
 		//arrange
 		RecreateBucket(rawClient, options.Org, options.TradeBucketName)

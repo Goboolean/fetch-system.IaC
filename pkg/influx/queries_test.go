@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/Goboolean/fetch-system.IaC/pkg/influx"
@@ -25,23 +24,20 @@ type InfluxTestSuite struct {
 }
 
 func (suite *InfluxTestSuite) SetupSuite() {
-	suite.options = influx.Opts{
-		Url:             os.Getenv("INFLUXDB_URL"),
+	options := &influx.Opts{
+		URL:             os.Getenv("INFLUXDB_URL"),
 		Token:           os.Getenv("INFLUXDB_TOKEN"),
 		TradeBucketName: os.Getenv("INFLUXDB_TRADE_BUCKET"),
 		Org:             os.Getenv("INFLUXDB_ORG"),
 	}
 
+	suite.rawClient = influxdb2.NewClient(options.URL, options.Token)
 	var err error
-	suite.testClient, err = influx.NewDB(&suite.options)
+	suite.testClient, err = influx.NewDB(options)
 	if err != nil {
-		panic(err)
+		suite.FailNow(err.Error())
 	}
-	suite.rawClient = influxdb2.NewClient(suite.options.Url, suite.options.Token)
-	err = suite.createBucketIfNotExits(suite.options.Org, suite.options.TradeBucketName)
-	if err != nil {
-		panic(err)
-	}
+
 }
 
 func (suite *InfluxTestSuite) TestConstructor() {
@@ -252,8 +248,4 @@ func (suite *InfluxTestSuite) storeBrokenStockAggregate(start time.Time, interva
 		}
 	}
 	return nil
-}
-
-func TestInfluxTestSuite(t *testing.T) {
-	suite.Run(t, new(InfluxTestSuite))
 }

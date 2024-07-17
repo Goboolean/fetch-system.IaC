@@ -25,7 +25,6 @@ type InfluxTestSuite struct {
 }
 
 func (suite *InfluxTestSuite) SetupSuite() {
-	fmt.Println("setupSutie")
 	suite.options = influx.Opts{
 		URL:             os.Getenv("INFLUXDB_URL"),
 		Token:           os.Getenv("INFLUXDB_TOKEN"),

@@ -10,7 +10,6 @@ import (
 	"github.com/Goboolean/fetch-system.IaC/pkg/influx"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -48,7 +47,7 @@ func (suite *DBTestSuite) SetupTest() {
 }
 func (suite *DBTestSuite) TestConstructor() {
 	err := suite.testClient.Ping(context.Background())
-	assert.NoError(suite.T(), err)
+	suite.NoError(err)
 }
 
 func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTradeWithoutError_WhenBucketIsEmpty() {
@@ -59,8 +58,8 @@ func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTradeWithoutErro
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchByTimeRange(ctx, testStockID, "1m", now.Add(-5*60*time.Second), now)
-	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 0)
+	suite.NoError(err)
+	suite.Len(aggregates, 0)
 }
 
 func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTrade_WhenFromAndToRepresentOutOfStoredRange() {
@@ -73,8 +72,8 @@ func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTrade_WhenFromAn
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchByTimeRange(ctx, testStockID, testTimeFrame, start.Add(-5*time.Second), start.Add(-1*time.Second))
-	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 0)
+	suite.NoError(err)
+	suite.Len(aggregates, 0)
 	fmt.Println("end: ", "TestFetchByTimeRange_ShouldReturnEmptyTrade_WhenFromAndToRepresentOutOfStoredRange")
 }
 
@@ -88,8 +87,8 @@ func (suite *DBTestSuite) TestFetchByTimeRange_ShouldFetchData_WhenFromAndToIncl
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchByTimeRange(ctx, testStockID, testTimeFrame, start, start.Add(30*time.Second))
-	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 30)
+	suite.NoError(err)
+	suite.Len(aggregates, 30)
 }
 func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnError_WhenRequiredFieldNotExists() {
 	// arrange
@@ -101,8 +100,8 @@ func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnError_WhenRequiredFie
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchByTimeRange(ctx, testStockID, "1m", start, start.Add(30*time.Second))
-	assert.Error(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 0)
+	suite.Error(err)
+	suite.Len(aggregates, 0)
 }
 
 func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldReturnEmptyTradeWithoutError_WhenBucketIsEmpty() {
@@ -113,8 +112,8 @@ func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldReturnEmptyTradeWitho
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchLimitedTradeAfter(ctx, testStockID, "1m", now.Add(-5*60*time.Second), 10)
-	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 0)
+	suite.NoError(err)
+	suite.Len(aggregates, 0)
 }
 
 func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchLimitedAmountOfData_WhenMoreDataIsStored() {
@@ -130,8 +129,8 @@ func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchLimitedAmountOfD
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchLimitedTradeAfter(ctx, testStockID, testTimeFrame, start, 30)
-	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 30)
+	suite.NoError(err)
+	suite.Len(aggregates, 30)
 }
 
 func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_WhenRequestedAmountExceedsStoredData() {
@@ -147,8 +146,8 @@ func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_WhenRequ
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchLimitedTradeAfter(ctx, testStockID, testTimeFrame, start, 30)
-	assert.NoError(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 20)
+	suite.NoError(err)
+	suite.Len(aggregates, 20)
 }
 
 func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_ShouldReturnError_WhenRequiredFieldNotExists() {
@@ -164,8 +163,8 @@ func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_ShouldRe
 	defer cancel()
 
 	aggregates, err := suite.testClient.FetchLimitedTradeAfter(ctx, testStockID, "1m", start, 30)
-	assert.Error(suite.T(), err)
-	assert.Len(suite.T(), aggregates, 0)
+	suite.Error(err)
+	suite.Len(aggregates, 0)
 }
 
 func (suite *DBTestSuite) TearDownSuite() {

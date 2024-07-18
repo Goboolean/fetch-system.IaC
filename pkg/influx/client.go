@@ -41,6 +41,10 @@ func NewDB(o *Opts) (*DB, error) {
 
 	client := influxdb2.NewClient(o.URL, o.Token)
 
+	if !bucketExists(client, o.TradeBucketName) {
+		return nil, fmt.Errorf("create influx db client: Trade bucket '%s' does not exist", o.TradeBucketName)
+	}
+
 	instance := &DB{
 		client:      client,
 		tradeBucket: o.TradeBucketName,

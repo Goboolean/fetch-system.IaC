@@ -16,14 +16,14 @@ import (
 var testStockID = "stock.aapl.usa"
 var testTimeFrame = "1m"
 
-type InfluxTestSuite struct {
+type DBTestSuite struct {
 	suite.Suite
 	testClient *influx.DB
 	rawClient  influxdb2.Client
 	options    influx.Opts
 }
 
-func (suite *InfluxTestSuite) SetupSuite() {
+func (suite *DBTestSuite) SetupSuite() {
 	suite.options = influx.Opts{
 		URL:             os.Getenv("INFLUXDB_URL"),
 		Token:           os.Getenv("INFLUXDB_TOKEN"),
@@ -41,16 +41,16 @@ func (suite *InfluxTestSuite) SetupSuite() {
 	suite.Require().NoError(err)
 }
 
-func (suite *InfluxTestSuite) SetupTest() {
+func (suite *DBTestSuite) SetupTest() {
 	err := suite.recreateBucket(suite.options.Org, suite.options.TradeBucketName)
 	suite.Require().NoError(err)
 }
-func (suite *InfluxTestSuite) TestConstructor() {
+func (suite *DBTestSuite) TestConstructor() {
 	err := suite.testClient.Ping(context.Background())
 	suite.NoError(err)
 }
 
-func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTradeWithoutError_WhenBucketIsEmpty() {
+func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTradeWithoutError_WhenBucketIsEmpty() {
 	// arrange
 	// act
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(1*time.Second))
@@ -62,7 +62,7 @@ func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTradeWithout
 	suite.Len(aggregates, 0)
 }
 
-func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTrade_WhenFromAndToRepresentOutOfStoredRange() {
+func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTrade_WhenFromAndToRepresentOutOfStoredRange() {
 	// arrange
 	start := time.Now()
 	err := suite.storeStockAggregate(start, time.Second, 60)
@@ -77,7 +77,7 @@ func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldReturnEmptyTrade_WhenFr
 	fmt.Println("end: ", "TestFetchByTimeRange_ShouldReturnEmptyTrade_WhenFromAndToRepresentOutOfStoredRange")
 }
 
-func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldFetchData_WhenFromAndToIncludeRangeOfStoredData() {
+func (suite *DBTestSuite) TestFetchByTimeRange_ShouldFetchData_WhenFromAndToIncludeRangeOfStoredData() {
 	// arrange
 	start := time.Now()
 	err := suite.storeStockAggregate(start, time.Second, 60)
@@ -90,7 +90,7 @@ func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldFetchData_WhenFromAndTo
 	suite.NoError(err)
 	suite.Len(aggregates, 30)
 }
-func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldReturnError_WhenRequiredFieldNotExists() {
+func (suite *DBTestSuite) TestFetchByTimeRange_ShouldReturnError_WhenRequiredFieldNotExists() {
 	// arrange
 	start := time.Now()
 	err := suite.storeBrokenStockAggregate(start, time.Second, 60)
@@ -104,7 +104,7 @@ func (suite *InfluxTestSuite) TestFetchByTimeRange_ShouldReturnError_WhenRequire
 	suite.Len(aggregates, 0)
 }
 
-func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldReturnEmptyTradeWithoutError_WhenBucketIsEmpty() {
+func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldReturnEmptyTradeWithoutError_WhenBucketIsEmpty() {
 	// arrange
 	// act
 	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(1*time.Second))
@@ -116,7 +116,7 @@ func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldReturnEmptyTradeW
 	suite.Len(aggregates, 0)
 }
 
-func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldFetchLimitedAmountOfData_WhenMoreDataIsStored() {
+func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchLimitedAmountOfData_WhenMoreDataIsStored() {
 	// arrange
 	storeNum := 60
 	storeInterval := time.Second
@@ -133,7 +133,7 @@ func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldFetchLimitedAmoun
 	suite.Len(aggregates, 30)
 }
 
-func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_WhenRequestedAmountExceedsStoredData() {
+func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_WhenRequestedAmountExceedsStoredData() {
 	// arrange
 	storeNum := 20
 	storeInterval := time.Second
@@ -150,7 +150,7 @@ func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_When
 	suite.Len(aggregates, 20)
 }
 
-func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_ShouldReturnError_WhenRequiredFieldNotExists() {
+func (suite *DBTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_ShouldReturnError_WhenRequiredFieldNotExists() {
 	// arrange
 	storeNum := 60
 	storeInterval := time.Second
@@ -167,11 +167,11 @@ func (suite *InfluxTestSuite) TestFetchLimitedTradeAfter_ShouldFetchAllData_Shou
 	suite.Len(aggregates, 0)
 }
 
-func (suite *InfluxTestSuite) TearDownSuite() {
+func (suite *DBTestSuite) TearDownSuite() {
 	suite.rawClient.Close()
 }
 
-func (suite *InfluxTestSuite) createBucketIfNotExits(orgName, bucketName string) error {
+func (suite *DBTestSuite) createBucketIfNotExits(orgName, bucketName string) error {
 	org, err := suite.rawClient.OrganizationsAPI().FindOrganizationByName(context.Background(), orgName)
 	if err != nil {
 		return err
@@ -186,7 +186,7 @@ func (suite *InfluxTestSuite) createBucketIfNotExits(orgName, bucketName string)
 	return nil
 }
 
-func (suite *InfluxTestSuite) recreateBucket(orgName, bucketName string) error {
+func (suite *DBTestSuite) recreateBucket(orgName, bucketName string) error {
 	org, err := suite.rawClient.OrganizationsAPI().FindOrganizationByName(context.Background(), orgName)
 	if err != nil {
 		return err
@@ -206,7 +206,7 @@ func (suite *InfluxTestSuite) recreateBucket(orgName, bucketName string) error {
 	return err
 }
 
-func (suite *InfluxTestSuite) storeStockAggregate(start time.Time, interval time.Duration, num int) error {
+func (suite *DBTestSuite) storeStockAggregate(start time.Time, interval time.Duration, num int) error {
 	writer := suite.rawClient.WriteAPIBlocking(suite.options.Org, suite.options.TradeBucketName)
 	for i := 0; i < num; i++ {
 		err := writer.WritePoint(
@@ -231,7 +231,7 @@ func (suite *InfluxTestSuite) storeStockAggregate(start time.Time, interval time
 	return nil
 }
 
-func (suite *InfluxTestSuite) storeBrokenStockAggregate(start time.Time, interval time.Duration, num int) error {
+func (suite *DBTestSuite) storeBrokenStockAggregate(start time.Time, interval time.Duration, num int) error {
 	writer := suite.rawClient.WriteAPIBlocking(suite.options.Org, suite.options.TradeBucketName)
 	for i := 0; i < num; i++ {
 		err := writer.WritePoint(
@@ -255,5 +255,5 @@ func (suite *InfluxTestSuite) storeBrokenStockAggregate(start time.Time, interva
 	return nil
 }
 func TestInflux(t *testing.T) {
-	suite.Run(t, new(InfluxTestSuite))
+	suite.Run(t, new(DBTestSuite))
 }

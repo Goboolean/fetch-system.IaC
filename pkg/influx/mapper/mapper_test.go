@@ -287,4 +287,49 @@ func TestMapStructToPoint(t *testing.T) {
 		assert.Equal(t, float32(3.14), out["testStruct.testFloat"])
 		assert.Equal(t, true, out["testStruct.testBool"])
 	})
+
+	t.Run("포인터 형식으로 구조체가 넘어왔을 때", func(t *testing.T) {
+		//arrange
+		type TestStruct struct {
+			TestNumber int     `name:"testNumber"`
+			TestString string  `name:"testString"`
+			TestFloat  float32 `name:"testFloat"`
+			TestBool   bool    `name:"testBool"`
+		}
+
+		type TestNestedStruct struct {
+			TestNumber       int         `name:"testNumber"`
+			TestString       string      `name:"testString"`
+			TestFloat        float32     `name:"testFloat"`
+			TestBool         bool        `name:"testBool"`
+			TestNestedStruct *TestStruct `name:"testStruct"`
+		}
+
+		in := &TestNestedStruct{
+			TestNumber: 100,
+			TestString: "test",
+			TestFloat:  3.14,
+			TestBool:   true,
+			TestNestedStruct: &TestStruct{
+				TestNumber: 100,
+				TestString: "test",
+				TestFloat:  3.14,
+				TestBool:   true,
+			},
+		}
+		//act
+		out, err := mapper.StructToPoint(in)
+		//assert
+		assert.NoError(t, err)
+		assert.NotNil(t, out)
+		assert.Equal(t, 100, out["testNumber"])
+		assert.Equal(t, "test", out["testString"])
+		assert.Equal(t, float32(3.14), out["testFloat"])
+		assert.Equal(t, true, out["testBool"])
+
+		assert.Equal(t, 100, out["testStruct.testNumber"])
+		assert.Equal(t, "test", out["testStruct.testString"])
+		assert.Equal(t, float32(3.14), out["testStruct.testFloat"])
+		assert.Equal(t, true, out["testStruct.testBool"])
+	})
 }

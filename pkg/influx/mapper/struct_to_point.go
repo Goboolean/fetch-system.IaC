@@ -14,7 +14,13 @@ type InfluxDataFields map[string]interface{}
 func StructToPoint(in any) (InfluxDataFields, error) {
 
 	p := make(InfluxDataFields)
-	err := structToPoint(reflect.ValueOf(in), "", p)
+	v := reflect.ValueOf(in)
+
+	if v.Type().Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+
+	err := structToPoint(v, "", p)
 	return p, err
 }
 

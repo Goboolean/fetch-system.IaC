@@ -22,16 +22,55 @@ jobs:
           make test-app
 
   build:
-    needs: [test]
+    needs: test
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build & push retriever image
+      - name: Decrypt environment variables
         run: |
-          make build-retriever-app
+          echo "${{ secrets.ENV }}" base64 -d > .env
 
-      - name: Build & push preparer image
+      - name: Build DB Initer App
+        run: |
+          make build-db-initer-app
+
+      - name: Build Preparer App
         run: |
           make build-preparer-app
+  
+      - name: Set up Docker daemon to using HTTP
+        run: |
+          sudo mkdir -p /etc/docker
+          echo '{"insecure-registries":["${{ secrets.HARBOR_REGISTRY }}"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+      - name: Login to Harbor
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.HARBOR_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+        
+      - name: Push DB initer app image to Harbor
+        run: |
+          docker images
+          docker tag fetch-system-db-initer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:latest
+          docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:latest
+
+      - name: Push preparer app image to Harbor
+        run: |
+          docker images
+          docker tag fetch-system-preparer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:latest
+          docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:latest
+
+  kustomize:
+    runs-on: ubuntu-latest
+    needs: build
+
+    # Kustomize repository update workerflow
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2

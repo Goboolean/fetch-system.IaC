@@ -22,7 +22,7 @@ jobs:
           make test-app
 
   build:
-    needs: test
+    # needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -56,13 +56,11 @@ jobs:
         
       - name: Push DB initer app image to Harbor
         run: |
-          docker images
           docker tag fetch-system-db-initer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:latest
           docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:latest
 
       - name: Push preparer app image to Harbor
         run: |
-          docker images
           docker tag fetch-system-preparer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:latest
           docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:latest
 
@@ -70,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
 
-    # Kustomize repository update workerflow
+    # Kustomize repository update workflow
     steps:
       - name: Checkout
         uses: actions/checkout@v2

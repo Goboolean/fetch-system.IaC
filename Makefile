@@ -10,12 +10,10 @@ test-app:
 	docker compose -p $(PROJECT_NAME) -f ./deploy/docker-compose.test.yml down --remove-orphans
 
 build-db-initer-app:
-	docker build -t registry.mulmuri.dev/fetch-system-db-initer:latest -f ./deploy/Dockerfile.dbiniter .
-	docker push registry.mulmuri.dev/fetch-system-db-initer:latest
+	docker build -t fetch-system-db-initer:latest -f ./deploy/Dockerfile.dbiniter .
+
 build-preparer-app:
-	docker build -t registry.mulmuri.dev/fetch-system-preparer:latest -f ./deploy/Dockerfile.preparer .
-	docker push registry.mulmuri.dev/fetch-system-preparer:latest
-	helm upgrade fetch-system ~/lab -n goboolean
+	docker build -t fetch-system-preparer:latest -f ./deploy/Dockerfile.preparer .
 
 generate-proto:
 	@protocf --go_out=. ./api/protobuf/model.proto

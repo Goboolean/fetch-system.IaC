@@ -22,7 +22,7 @@ jobs:
           make test-app
 
   build:
-    # needs: test
+    needs: test
     runs-on: ubuntu-latest
 
     steps:

@@ -56,13 +56,13 @@ jobs:
         
       - name: Push DB initer app image to Harbor
         run: |
-          docker tag fetch-system-db-initer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:latest
-          docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:latest
+          docker tag fetch-system-db-initer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:${{ github.sha }}
+          docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-db-initer:${{ github.sha }}
 
       - name: Push preparer app image to Harbor
         run: |
-          docker tag fetch-system-preparer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:latest
-          docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:latest
+          docker tag fetch-system-preparer:latest ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:${{ github.sha }}
+          docker push ${{ secrets.HARBOR_REGISTRY }}/fetch-system/fetch-system-preparer:${{ github.sha }}
 
   kustomize:
     runs-on: ubuntu-latest
